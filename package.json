@@ -1,13 +1,14 @@
 {
   "name": "@sashido/mcp-server",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "MCP Server for SashiDo - Backend as a Service platform",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
   "bin": {
-    "sashido-mcp-server": "./dist/bin/mcp-server.js",
-    "sashido-mcp-login": "./dist/bin/login.js"
+    "mcp-server": "dist/bin/mcp-server.js",
+    "sashido-mcp-server": "dist/bin/mcp-server.js",
+    "sashido-mcp-login": "dist/bin/login.js"
   },
   "files": [
     "dist",

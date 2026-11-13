@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { AddressInfo } from "net";
 import type { Server } from "http";
 import { ErrorAnswer, FakeApi, startFakeApi, token } from "./fakeApi.js";
+import { SERVER_VERSION } from "../src/version.js";
 
 let api: FakeApi;
 let server: Server;
@@ -428,7 +429,7 @@ describe("audit", () => {
     // a tool that still makes its own client gets them too
     await call("list_engines", {});
     const proxied = api.requests.find((r) => r.path === "/apps/app1/parse/classes/Post")!;
-    expect(proxied.headers["x-sashido-client"]).toBe("mcp/0.2.0");
+    expect(proxied.headers["x-sashido-client"]).toBe(`mcp/${SERVER_VERSION}`);
     expect(proxied.headers["x-sashido-mcp-tool"]).toBe("query_objects");
     expect(proxied.headers["x-sashido-mcp-client"]).toBe("cursor/1.2");
     expect(proxied.headers["x-request-id"]).toMatch(/^[0-9a-f-]{36}$/);
