@@ -1,0 +1,69 @@
+{
+  "name": "@sashido/mcp-server",
+  "version": "0.2.0",
+  "description": "MCP Server for SashiDo - Backend as a Service platform",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "bin": {
+    "sashido-mcp-server": "./dist/bin/mcp-server.js",
+    "sashido-mcp-login": "./dist/bin/login.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build",
+    "dev": "tsx watch src/bin/mcp-server.ts",
+    "start": "node dist/bin/mcp-server.js --transport=http",
+    "start:stdio": "node dist/bin/mcp-server.js --transport=stdio",
+    "start:http": "node dist/bin/mcp-server.js --transport=http",
+    "login": "node dist/bin/login.js",
+    "lint": "eslint src --ext .ts",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "sashido",
+    "parse-server",
+    "baas",
+    "ai"
+  ],
+  "author": "SashiDo",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.17"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sashido/sashido-mcp-server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sashido/sashido-mcp-server/issues"
+  },
+  "homepage": "https://github.com/sashido/sashido-mcp-server#readme",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.25.2",
+    "axios": "^1.6.0",
+    "dotenv": "^16.3.0",
+    "express": "^5.2.1",
+    "redis": "^4.6.0",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "eslint": "^8.55.0",
+    "tsx": "^4.6.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.0.0"
+  }
+}
