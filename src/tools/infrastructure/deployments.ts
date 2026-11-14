@@ -122,6 +122,17 @@ const REASONS: Record<string, string> = {
   manual: "Start Deploy",
 };
 const MAX_CHANGES = 3;
+const MAX_TEXT = 100;
+
+// Text that comes from outside (a commit message, a token's name, a client's
+// label): one line, no control characters, short. It goes to an AI assistant
+// as data, so it mustn't be able to pass for lines of its own.
+function plain(text: unknown): string {
+  const line = (String(text || "").split(/\r?\n/)[0] || "")
+    .replace(/[\u0000-\u001f\u007f-\u009f\u2028\u2029]/g, " ")
+    .trim();
+  return line.length > MAX_TEXT ? `${line.slice(0, MAX_TEXT - 1)}…` : line;
+}
 
 /** "Settings: PARSE_SERVER_LIVE_QUERY_OPTIONS (none → Test), by me@example.com via Dashboard" */
 export function describeCause(d: DeploymentHistoryEntry): string {
@@ -130,13 +141,15 @@ export function describeCause(d: DeploymentHistoryEntry): string {
   if (cause && cause.kind === "build") {
     const b = cause.build || {};
     parts.push(
-      [b.number ? `build #${b.number}` : "a build", b.source === "GitHub" ? "GitHub push" : "", b.message ? `"${b.message}"` : ""]
+      [b.number ? `build #${b.number}` : "a build", b.source === "GitHub" ? "GitHub push" : "", b.message ? `commit message "${plain(b.message)}"` : ""]
         .filter(Boolean)
         .join(", "),
     );
   } else if (cause) {
     const changes = (cause.changes || []).slice(0, MAX_CHANGES).map((c) =>
-      c.from !== undefined && c.to !== undefined ? `${c.name} (${c.from} → ${c.to})` : `${c.name} ${c.change}`,
+      c.from !== undefined && c.to !== undefined
+        ? `${plain(c.name)} (${plain(c.from)} → ${plain(c.to)})`
+        : `${plain(c.name)} ${plain(c.change)}`,
     );
     const more = (cause.changes || []).length - changes.length;
     const what = REASONS[cause.kind] || cause.kind;
@@ -144,7 +157,9 @@ export function describeCause(d: DeploymentHistoryEntry): string {
   }
   const by = d.startedBy;
   if (by) {
-    const who = [by.user && (by.user.name || by.user.email), by.tokenName && `token "${by.tokenName}"`].filter(Boolean).join(", ");
+    const who = [by.user && plain(by.user.name || by.user.email), by.tokenName && `token "${plain(by.tokenName)}"`]
+      .filter(Boolean)
+      .join(", ");
     const via = by.client === "dashboard" ? "Dashboard" : by.client === "github" ? "GitHub" : by.client.startsWith("mcp") ? "MCP" : "API";
     parts.push(`${who ? `by ${who} ` : ""}via ${via}${by.ip ? ` from ${by.ip}` : ""}`);
   }

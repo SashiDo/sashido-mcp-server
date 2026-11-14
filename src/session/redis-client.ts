@@ -80,7 +80,7 @@ async function connectRedis(): Promise<RedisClientType | null> {
     });
 
     await client.connect();
-    console.error("[Redis] Connected to", appConfig.redis.url);
+    console.error("[Redis] Connected to", withoutCredentials(appConfig.redis.url));
 
     redisClient = client as RedisClientType;
     connectionAttempts = 0;
@@ -153,4 +153,9 @@ export async function closeRedisConnection(): Promise<void> {
   redisClient = null;
   connectionPromise = null;
   connectionAttempts = 0;
+}
+
+/** A Redis URL fit for the log: its user and password left out */
+export function withoutCredentials(url: string | undefined): string {
+  return String(url || "").replace(/\/\/[^/@]*@/, "//***@");
 }
