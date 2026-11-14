@@ -5,7 +5,7 @@ import { createServer } from "../src/server.js";
 
 const ALL_SCOPES = [
   "account:read", "apps:read", "apps:write", "deploy", "env:read",
-  "env:write", "logs:read", "data:read", "data:write",
+  "env:write", "settings:read", "settings:write", "logs:read", "data:read", "data:write",
 ];
 
 const access = (extra: Partial<Access> = {}): Access => ({

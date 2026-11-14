@@ -93,6 +93,7 @@ For example: `https://mcp.sashido.io/mcp?read_only=true&apps=AbC123`
 | `apps:write` | Create and rename apps, change engines, scale, high availability, Parse Server version |
 | `deploy` | Build, deploy and cancel |
 | `env:read` / `env:write` | Environment variables |
+| `settings:read` / `settings:write` | App settings (login methods, multi-factor authentication, email, push, Live Queries, API options) and the custom domain. Secrets can be set, never read |
 | `logs:read` | Logs |
 | `data:read` | Schema, objects, cloud code, push status, jobs, webhooks, advisor |
 | `data:write` | Change data and schema, call functions, send push, run jobs, webhooks |
@@ -101,7 +102,7 @@ A client only sees the tools its token and options allow. The SashiDo API checks
 
 ## Tools
 
-71 tools in these groups (the names are what `features` takes):
+76 tools in these groups (the names are what `features` takes):
 
 | Group | Tools |
 |---|---|
@@ -113,6 +114,7 @@ A client only sees the tools its token and options allow. The SashiDo API checks
 | `engines` | `list_engines`, `set_engine`, `scale_app`, `set_high_availability` |
 | `health` | `check_app_health` |
 | `env` | `list_env_vars`, `set_env_var`, `delete_env_var` |
+| `settings` | `get_app_settings`, `update_app_settings`, `get_custom_domain`, `set_custom_domain`, `remove_custom_domain` |
 | `classes` | `list_classes`, `get_class`, `get_class_permissions`, `create_class`, `add_field`, `update_class_permissions`, `delete_field`, `delete_class` |
 | `types` | `generate_types`: typed classes from the schema for TypeScript, Swift, Kotlin and Dart |
 | `advisor` | `get_app_advice`: security, data, cloud code and runtime checks, each with what to do; `plan_parse_server_upgrade`: what breaks in your cloud code on a newer version, where, and how to fix it |

@@ -1,6 +1,7 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import { appConfig } from '../config.js';
 import { auditHeaders } from '../audit.js';
+import { AppSettingsView, CustomDomain, SettingsPatch, SettingsUpdate } from './settings.js';
 
 export interface Replicas {
   auto: boolean;
@@ -435,6 +436,33 @@ export class SashidoClient {
   async cancelBuild(appObjectId: string, buildName: string, region?: string): Promise<void> {
     const params = region ? `?region=${encodeURIComponent(region)}` : '';
     await this.client.post(`/apps/${encodeURIComponent(appObjectId)}/build/cancel${params}`, { name: buildName });
+  }
+
+  // App Settings - GET/PATCH /apps/{appObjectId}/settings
+  async getAppSettings(appObjectId: string): Promise<AppSettingsView> {
+    const response = await this.client.get<{ data: AppSettingsView }>(`/apps/${encodeURIComponent(appObjectId)}/settings`);
+    return response.data.data;
+  }
+
+  async updateAppSettings(appObjectId: string, patch: SettingsPatch): Promise<SettingsUpdate> {
+    const response = await this.client.patch<{ data: SettingsUpdate }>(`/apps/${encodeURIComponent(appObjectId)}/settings`, patch);
+    return response.data.data;
+  }
+
+  // Custom domain - GET/PUT/DELETE /apps/{appObjectId}/domain
+  async getCustomDomain(appObjectId: string): Promise<CustomDomain> {
+    const response = await this.client.get<{ data: CustomDomain }>(`/apps/${encodeURIComponent(appObjectId)}/domain`);
+    return response.data.data;
+  }
+
+  async setCustomDomain(appObjectId: string, body: { hostName: string; letsEncrypt?: boolean }): Promise<CustomDomain> {
+    const response = await this.client.put<{ data: CustomDomain }>(`/apps/${encodeURIComponent(appObjectId)}/domain`, body);
+    return response.data.data;
+  }
+
+  async removeCustomDomain(appObjectId: string): Promise<CustomDomain> {
+    const response = await this.client.delete<{ data: CustomDomain }>(`/apps/${encodeURIComponent(appObjectId)}/domain`);
+    return response.data.data;
   }
 
   // Environment Variables - GET /apps/{appObjectId}/env

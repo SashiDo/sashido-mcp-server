@@ -5,6 +5,7 @@ import { registerAppTools } from './tools/apps/index.js';
 import { registerBuildTools } from './tools/builds/index.js';
 import { registerDeploymentTools } from './tools/deployments/index.js';
 import { registerEnvTools } from './tools/env/index.js';
+import { registerSettingsTools } from './tools/settings/index.js';
 import { registerEngineTools } from './tools/engines/index.js';
 import { registerHealthTools } from './tools/health/index.js';
 import { registerJobTools } from './tools/jobs/index.js';
@@ -34,6 +35,7 @@ export const TOOL_GROUPS: Record<string, (server: ToolServer, ctx: ToolContext) 
   types: registerTypeTools,
   advisor: registerAdvisorTools,
   env: registerEnvTools,
+  settings: registerSettingsTools,
   engines: registerEngineTools,
   health: registerHealthTools,
   classes: registerClassTools,

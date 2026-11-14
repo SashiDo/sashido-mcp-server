@@ -14,6 +14,8 @@ export type Scope =
   | "deploy"
   | "env:read"
   | "env:write"
+  | "settings:read"
+  | "settings:write"
   | "logs:read"
   | "data:read"
   | "data:write";
@@ -69,6 +71,12 @@ export const TOOL_POLICY: Record<string, ToolPolicy> = {
   list_env_vars: read("env:read"),
   set_env_var: write("env:write"),
   delete_env_var: destructive("env:write"),
+  // App Settings: login methods, email, push, Live Queries, custom domain
+  get_app_settings: read("settings:read"),
+  update_app_settings: write("settings:write"),
+  get_custom_domain: read("settings:read"),
+  set_custom_domain: write("settings:write"),
+  remove_custom_domain: destructive("settings:write"),
   // classes (schema)
   list_classes: read("data:read"),
   generate_types: read("data:read"),
