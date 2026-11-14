@@ -8,7 +8,7 @@ export function registerDeploymentTools(server: ToolServer, ctx: ToolContext): v
   // Get Deployment Info
   server.tool(
     'get_deployment_info',
-    'Get deployment info including active and running deployment names',
+    "What serves traffic now, what is rolling out, and the deployment history: what started each deployment (a settings, environment variable or domain change by name, with before → after for settings that hold nothing secret; a build and its commit) and who (the user, the access token, through the dashboard, the API, MCP or GitHub).",
     {
       appObjectId: z.string().describe('The application object ID'),
     },

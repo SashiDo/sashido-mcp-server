@@ -22,6 +22,32 @@ export interface Deployment {
   updatedAt?: string;
 }
 
+/** What started a deployment, as the API's history says it */
+export interface DeploymentCause {
+  /** settings, env, domain, push_certificate, engine, manual, build */
+  kind: string;
+  /** names only; before/after only for settings that hold nothing secret */
+  changes?: Array<{ name: string; change: string; from?: string; to?: string }>;
+  build?: { number?: number; source?: string; commit?: string; message?: string; reason?: string };
+}
+
+/** Who started it and through what */
+export interface DeploymentStartedBy {
+  client: string;
+  user?: { name?: string; email?: string };
+  tokenName?: string;
+  mcpClient?: string;
+  mcpTool?: string;
+  /** only for the caller's own changes */
+  ip?: string;
+}
+
+/** A deployment of the history: only what the customer's team started */
+export interface DeploymentHistoryEntry extends Deployment {
+  cause?: DeploymentCause;
+  startedBy?: DeploymentStartedBy;
+}
+
 export interface AppSettingsForToken {
   /** per region: {name, billingPolicy} */
   engine?: Record<string, { name: string; billingPolicy: string }>;
@@ -331,6 +357,25 @@ export class SashidoClient {
       { params: { limit } },
     );
     return response.data.data;
+  }
+
+  /**
+   * The deployment history with what started each and who, without what
+   * the platform started; null when the API doesn't have it yet.
+   */
+  async getDeploymentHistory(appObjectId: string, limit = 10): Promise<DeploymentHistoryEntry[] | null> {
+    try {
+      const response = await this.client.get<{ data: DeploymentHistoryEntry[] }>(
+        `/apps/${encodeURIComponent(appObjectId)}/deployments/history`,
+        { params: { limit } },
+      );
+      return Array.isArray(response.data && response.data.data) ? response.data.data : null;
+    } catch (e) {
+      if (e instanceof SashidoApiError && e.statusCode === 404) {
+        return null;
+      }
+      throw e;
+    }
   }
 
   /** Parse Server versions apps may be created on or switched to */

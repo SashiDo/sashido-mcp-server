@@ -1,10 +1,11 @@
-import { Deployment, SashidoClient } from "../../client/sashido.js";
+import { Deployment, DeploymentHistoryEntry, SashidoClient } from "../../client/sashido.js";
 
 // Two numberings, never compared with each other:
 // - what serves traffic: the app's running instances, as they report now
 // - the deployment history the dashboard shows, with its own numbering;
-//   cancel_deployment takes these names. Not every rollout appears in it,
-//   so it never decides what serves.
+//   cancel_deployment takes these names. It lists what the customer's team
+//   started (with what and who), not the platform's own rollouts, so it
+//   never decides what serves.
 
 export const IN_PROGRESS = ["New", "Pending", "Running"];
 const ENDED_BADLY = ["Failed", "Cancelled", "Error"];
@@ -15,7 +16,7 @@ export interface DeploymentState {
   /** The deployment whose containers report now */
   serving: { name: string; number: number; containers: number } | null;
   /** The deployment history, newest first; null when it can't be read */
-  records: Deployment[] | null;
+  records: DeploymentHistoryEntry[] | null;
   /** In progress in the history, recently started: can be cancelled */
   rolling: Deployment | null;
   /** "In progress" in the history for too long: never ended there */
@@ -48,10 +49,13 @@ export async function newRecord(
 const age = (d: Deployment) => Date.now() - Date.parse(d.createdAt);
 
 export async function deploymentState(client: SashidoClient, appObjectId: string): Promise<DeploymentState> {
-  const [live, records] = await Promise.all([
+  const [live, history] = await Promise.all([
     client.getActiveDeployment(appObjectId).catch(() => null),
-    client.listDeployments(appObjectId, 5).catch(() => null),
+    client.getDeploymentHistory(appObjectId, 5).catch(() => null),
   ]);
+  // the history says what and who; until the API has it, the plain records
+  const records: DeploymentHistoryEntry[] | null =
+    history || (await client.listDeployments(appObjectId, 5).catch(() => null));
   const serving =
     live && live.deploymentName && live.deploymentNumber !== null
       ? {
@@ -97,9 +101,52 @@ export function describeDeploymentState(state: DeploymentState): string[] {
   }
   if (state.records.length) {
     lines.push(
-      "Deployment history (the dashboard's numbering, which may miss some deployments):",
-      ...state.records.map((d) => `  ${d.name}: ${d.phase}, ${d.createdAt.replace("T", " ").slice(0, 16)}`),
+      "Deployment history (the dashboard's numbering; what your team started):",
+      ...state.records.map((d) => {
+        const what = describeCause(d);
+        return `  ${d.name}: ${d.phase}, ${d.createdAt.replace("T", " ").slice(0, 16)}${what ? ` — ${what}` : ""}`;
+      }),
     );
   }
   return lines;
+}
+
+const REASONS: Record<string, string> = {
+  settings: "Settings",
+  env: "Environment variables",
+  domain: "Custom domain",
+  push_certificate: "Push certificate",
+  engine: "Engine",
+  high_availability: "High availability",
+  version: "Parse Server version",
+  manual: "Start Deploy",
+};
+const MAX_CHANGES = 3;
+
+/** "Settings: PARSE_SERVER_LIVE_QUERY_OPTIONS (none → Test), by me@example.com via Dashboard" */
+export function describeCause(d: DeploymentHistoryEntry): string {
+  const parts: string[] = [];
+  const cause = d.cause;
+  if (cause && cause.kind === "build") {
+    const b = cause.build || {};
+    parts.push(
+      [b.number ? `build #${b.number}` : "a build", b.source === "GitHub" ? "GitHub push" : "", b.message ? `"${b.message}"` : ""]
+        .filter(Boolean)
+        .join(", "),
+    );
+  } else if (cause) {
+    const changes = (cause.changes || []).slice(0, MAX_CHANGES).map((c) =>
+      c.from !== undefined && c.to !== undefined ? `${c.name} (${c.from} → ${c.to})` : `${c.name} ${c.change}`,
+    );
+    const more = (cause.changes || []).length - changes.length;
+    const what = REASONS[cause.kind] || cause.kind;
+    parts.push(changes.length ? `${what}: ${changes.join(", ")}${more > 0 ? ` and ${more} more` : ""}` : what);
+  }
+  const by = d.startedBy;
+  if (by) {
+    const who = [by.user && (by.user.name || by.user.email), by.tokenName && `token "${by.tokenName}"`].filter(Boolean).join(", ");
+    const via = by.client === "dashboard" ? "Dashboard" : by.client === "github" ? "GitHub" : by.client.startsWith("mcp") ? "MCP" : "API";
+    parts.push(`${who ? `by ${who} ` : ""}via ${via}${by.ip ? ` from ${by.ip}` : ""}`);
+  }
+  return parts.join(", ");
 }
