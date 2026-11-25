@@ -8,6 +8,7 @@ import { registerEnvTools } from './tools/env/index.js';
 import { registerSettingsTools } from './tools/settings/index.js';
 import { registerEngineTools } from './tools/engines/index.js';
 import { registerHealthTools } from './tools/health/index.js';
+import { registerMetricsTools } from './tools/metrics/index.js';
 import { registerJobTools } from './tools/jobs/index.js';
 import { registerLogTools } from './tools/logs/index.js';
 import { registerClassTools } from './tools/classes/index.js';
@@ -38,6 +39,7 @@ export const TOOL_GROUPS: Record<string, (server: ToolServer, ctx: ToolContext) 
   settings: registerSettingsTools,
   engines: registerEngineTools,
   health: registerHealthTools,
+  metrics: registerMetricsTools,
   classes: registerClassTools,
   objects: registerObjectTools,
   files: registerFileTools,

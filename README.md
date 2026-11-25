@@ -102,7 +102,7 @@ A client only sees the tools its token and options allow. The SashiDo API checks
 
 ## Tools
 
-76 tools in these groups (the names are what `features` takes):
+77 tools in these groups (the names are what `features` takes):
 
 | Group | Tools |
 |---|---|
@@ -113,6 +113,7 @@ A client only sees the tools its token and options allow. The SashiDo API checks
 | `infrastructure` | `get_app_infrastructure`, `wait_for_deployment`, `list_parse_server_versions`, `change_parse_server_version` |
 | `engines` | `list_engines`, `set_engine`, `scale_app`, `set_high_availability` |
 | `health` | `check_app_health` |
+| `metrics` | `get_process_metrics`: CPU, memory, event loop lag and restarts over time, what each engine uses against its limits, and what stands out with what to do about it |
 | `env` | `list_env_vars`, `set_env_var`, `delete_env_var` |
 | `settings` | `get_app_settings`, `update_app_settings`, `get_custom_domain`, `set_custom_domain`, `remove_custom_domain` |
 | `classes` | `list_classes`, `get_class`, `get_class_permissions`, `create_class`, `add_field`, `update_class_permissions`, `delete_field`, `delete_class` |

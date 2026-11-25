@@ -67,6 +67,8 @@ export const TOOL_POLICY: Record<string, ToolPolicy> = {
   scale_app: write("apps:write"),
   set_high_availability: write("apps:write"),
   check_app_health: read("apps:read"),
+  // CPU, memory, event loop lag and restarts over time, with what stands out
+  get_process_metrics: read("apps:read"),
   // environment variables
   list_env_vars: read("env:read"),
   set_env_var: write("env:write"),

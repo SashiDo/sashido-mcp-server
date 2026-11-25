@@ -2,6 +2,7 @@ import axios, { AxiosInstance, AxiosError } from 'axios';
 import { appConfig } from '../config.js';
 import { auditHeaders } from '../audit.js';
 import { AppSettingsView, CustomDomain, SettingsPatch, SettingsUpdate } from './settings.js';
+import { ProcessMetrics, ProcessMetricsRange } from './metrics.js';
 
 export interface Replicas {
   auto: boolean;
@@ -372,6 +373,27 @@ export class SashidoClient {
       return Array.isArray(response.data && response.data.data) ? response.data.data : null;
     } catch (e) {
       if (e instanceof SashidoApiError && e.statusCode === 404) {
+        return null;
+      }
+      throw e;
+    }
+  }
+
+  /**
+   * CPU, memory, event loop lag and restarts of the app's processes with
+   * what stands out; null when the API doesn't have it yet.
+   */
+  async getProcessMetrics(appObjectId: string, range: ProcessMetricsRange): Promise<ProcessMetrics | null> {
+    try {
+      const response = await this.client.get<{ data: ProcessMetrics }>(
+        `/metrics/processes/${encodeURIComponent(appObjectId)}/overview`,
+        { params: { range } },
+      );
+      const data = response.data && response.data.data;
+      return data && Array.isArray(data.processes) && data.health ? data : null;
+    } catch (e) {
+      // no such route answers 404 without a code; "App not found" has one
+      if (e instanceof SashidoApiError && e.statusCode === 404 && e.code === undefined) {
         return null;
       }
       throw e;
