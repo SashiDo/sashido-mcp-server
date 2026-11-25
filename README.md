@@ -13,6 +13,7 @@
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
   <a href="https://nodejs.org/"><img src="https://img.shields.io/badge/node-%3E%3D18.17-brightgreen.svg" alt="Node.js Version"></a>
   <a href="https://modelcontextprotocol.io/"><img src="https://img.shields.io/badge/MCP-Compatible-purple.svg" alt="MCP Compatible"></a>
+  <a href="https://glama.ai/mcp/servers/SashiDo/sashido-mcp-server"><img src="https://glama.ai/mcp/servers/SashiDo/sashido-mcp-server/badges/score.svg" alt="SashiDo MCP server on Glama"></a>
 </p>
 
 ---
@@ -110,6 +111,21 @@ claude mcp add --transport http sashido https://mcp.sashido.io/mcp \
 ```
 
 The local server also has the tools that read your files or fetch URLs (`upload_file_from_path`, `upload_file_from_url`). The hosted one doesn't.
+
+**As a Claude Code plugin**
+
+```
+/plugin install sashido --marketplace sashido/sashido-mcp-server
+```
+
+It asks for the access token once and keeps it in secure storage. The plugin connects to the hosted server.
+
+**In a container**
+
+```bash
+docker build -t sashido-mcp .
+docker run -i --rm -e SASHIDO_ACCESS_TOKEN=sashido_pat_... sashido-mcp
+```
 
 ### Narrowing a connection
 
@@ -260,6 +276,7 @@ Tool calls are logged to stderr as JSON lines (tool, app, client, result, durati
 - [MCP server docs](https://www.sashido.io/en/docs/developers/mcp) and the [developer docs](https://www.sashido.io/en/docs/developers) (every page is also Markdown: add `.md`; [llms.txt](https://www.sashido.io/llms.txt) lists them)
 - [support@sashido.io](mailto:support@sashido.io)
 - [GitHub issues](https://github.com/sashido/sashido-mcp-server/issues)
+- [Privacy policy](https://www.sashido.io/policies/#privacy-policy)
 
 ## License
 

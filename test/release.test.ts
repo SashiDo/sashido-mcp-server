@@ -11,6 +11,8 @@ const read = (file: string) => JSON.parse(readFileSync(new URL(`../${file}`, imp
 const pkg = read("package.json");
 const lock = read("package-lock.json");
 const server = read("server.json");
+const claudePlugin = read(".claude-plugin/plugin.json");
+const cursorPlugin = read(".cursor-plugin/plugin.json");
 
 describe("what a release publishes", () => {
   it("has one version everywhere", () => {
@@ -19,6 +21,8 @@ describe("what a release publishes", () => {
     expect(lock.packages[""].version).toBe(SERVER_VERSION);
     expect(server.version).toBe(SERVER_VERSION);
     expect(server.packages.map((p: { version: string }) => p.version)).toEqual([SERVER_VERSION]);
+    expect(claudePlugin.version).toBe(SERVER_VERSION);
+    expect(cursorPlugin.version).toBe(SERVER_VERSION);
   });
 
   it("is the same server for npm and for the MCP Registry", () => {
@@ -30,5 +34,13 @@ describe("what a release publishes", () => {
   it("fits the registry's limits", () => {
     expect(server.description.length).toBeLessThanOrEqual(100);
     expect(server.title.length).toBeLessThanOrEqual(100);
+  });
+
+  it("keeps the plugins' secrets out of the files", () => {
+    // the token is asked from the user, never written here
+    expect(claudePlugin.userConfig.sashido_access_token.sensitive).toBe(true);
+    expect(claudePlugin.mcpServers.sashido.headers.Authorization).toBe("Bearer ${user_config.sashido_access_token}");
+    expect(read("mcp.json").mcpServers.sashido.headers.Authorization).toBe("Bearer ${SASHIDO_ACCESS_TOKEN}");
+    expect(Object.keys(cursorPlugin.variables.properties)).toEqual(["SASHIDO_ACCESS_TOKEN"]);
   });
 });

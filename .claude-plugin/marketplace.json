@@ -1,0 +1,16 @@
+{
+  "name": "sashido",
+  "owner": {
+    "name": "SashiDo"
+  },
+  "metadata": {
+    "description": "SashiDo: a managed Parse Server backend for web and mobile apps, run from your assistant."
+  },
+  "plugins": [
+    {
+      "name": "sashido",
+      "source": "./",
+      "description": "A managed Parse Server backend your assistant can create, deploy and debug."
+    }
+  ]
+}
