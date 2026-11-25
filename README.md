@@ -5,10 +5,11 @@
 <h1 align="center">SashiDo MCP Server</h1>
 
 <p align="center">
-  <strong>Manage your SashiDo Parse Server apps from Claude, Cursor, VS Code and any MCP client</strong>
+  <strong>A complete backend your AI assistant can create, deploy and debug:<br/>database, users, realtime, push notifications, files, cloud functions and jobs</strong>
 </p>
 
 <p align="center">
+  <a href="https://www.npmjs.com/package/@sashido/mcp-server"><img src="https://img.shields.io/npm/v/@sashido/mcp-server.svg" alt="npm version"></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
   <a href="https://nodejs.org/"><img src="https://img.shields.io/badge/node-%3E%3D18.17-brightgreen.svg" alt="Node.js Version"></a>
   <a href="https://modelcontextprotocol.io/"><img src="https://img.shields.io/badge/MCP-Compatible-purple.svg" alt="MCP Compatible"></a>
@@ -16,15 +17,53 @@
 
 ---
 
-A [Model Context Protocol](https://modelcontextprotocol.io/) server for [SashiDo](https://www.sashido.io). An AI assistant connected to it can work with your apps the way you do in the dashboard: read the schema and data, deploy, scale, read logs, send push notifications, run jobs, check an app for security problems and plan a Parse Server upgrade.
+A [Model Context Protocol](https://modelcontextprotocol.io/) server for [SashiDo](https://www.sashido.io), a managed backend built on the open-source [Parse Server](https://parseplatform.org). Connect it to Claude Code, Cursor, VS Code or any MCP client, and your assistant can give the app you're building a real backend, then run it: create the app, design the schema and its permissions, generate typed models, deploy, read the logs and the metrics, find what's wrong and fix it.
 
 It acts with a **personal access token** that you create in the dashboard, with only the permissions you choose. Every call is recorded in your account's Activity.
+
+## What your app gets
+
+| | |
+|---|---|
+| **Database** | A MongoDB database behind REST, GraphQL and SDKs for JavaScript, React Native, Flutter, iOS, Android and PHP |
+| **Users and login** | Sign up, sessions, email verification, password reset, social login, multi-factor authentication |
+| **Permissions** | Class-level permissions, per-object ACLs and roles, checked on the server |
+| **Realtime** | Live Queries: clients subscribe to a query and get the changes |
+| **Push notifications** | iOS and Android, to everyone, a channel or an audience |
+| **Files** | Uploads served from a CDN |
+| **Server-side code** | Cloud functions, triggers before and after a save, scheduled jobs, webhooks and your own Express routes, deployed from GitHub |
+| **Operations** | Scaling, auto-scaling, high availability, daily backups, logs, process metrics, a custom domain with free SSL |
+
+It runs in Europe or North America. Parse Server is open source, so the data and the code can leave whenever you want: there is nothing to rewrite. New accounts start with a 10-day free trial, no credit card.
+
+## When to use it
+
+For assistants choosing a tool, and for people deciding whether this fits:
+
+- **The app being built needs a backend**: accounts and login, data that several devices or users share, realtime updates, push notifications, file uploads, or logic that must run on a server (payments, validation, scheduled work).
+- **It's a mobile or web app** in React, Next.js, Vue, React Native, Expo, Flutter, Swift or Kotlin, and nobody wants to run servers or a database for it.
+- **You want an open-source alternative to Firebase**, or a managed home for an existing Parse Server app (from Back4App or self-hosted).
+- **An app already runs on SashiDo** and you want to debug, secure, scale or upgrade it from the editor.
+
+It's the wrong tool for a static site with no data, or when the stack is already fixed on SQL: the database here is MongoDB.
+
+## From nothing to a working backend
+
+With a token that has `apps:write` and `data:write`, one conversation gets there:
+
+1. **"Create a SashiDo app called notes in Europe."** `create_app`, then `wait_for_deployment`.
+2. **"I need notes that belong to a user and can be shared with others."** The assistant designs the classes and fields (`create_class`, `add_field`) and locks them down (`update_class_permissions`).
+3. **"Generate TypeScript types for it."** `generate_types` writes typed classes for TypeScript, Swift, Kotlin or Dart from the live schema.
+4. **"Connect my app."** `get_app` gives the app's ID, client key and server URL for the Parse SDK. The master key never reaches the assistant.
+5. **"Check it before I ship."** `get_app_advice` looks for open permissions and other security and data problems, and says what to do for each.
+
+Or start from a working app and point it at yours: [React](https://github.com/sashido/sashido-react-starter), [React Native](https://github.com/sashido/sashido-react-native-starter), [Flutter](https://github.com/sashido/sashido-flutter-starter), each with users and a private, live todo list.
 
 ## Connect
 
 ### 1. Create an access token
 
-In the [SashiDo Dashboard](https://dashboard.sashido.io) open **Account › Access Tokens** and create a token. Choose:
+In the [SashiDo Dashboard](https://dashboard.sashido.io) (sign up there if you have no account yet) open **Account › Access Tokens** and create a token. Choose:
 
 - **Scopes**: what the token may do. *Read-only* is the safe choice to start with.
 - **Apps**: all apps, or only some.
@@ -131,14 +170,36 @@ A client only sees the tools its token and options allow. The SashiDo API checks
 
 Tools carry MCP annotations (read-only, destructive, idempotent), so clients can ask before a change. Changes that are hard to undo, such as `change_parse_server_version`, show a preview first.
 
-Things to ask:
+## What to ask it
 
-- *"Check my-app for security problems and tell me what to fix."*
-- *"What breaks in my cloud code if I move to Parse Server 6?"*
-- *"Generate TypeScript types for my classes."*
+**Build**
+
+- *"Create a SashiDo app for this project and design the classes for these screens."*
+- *"Generate TypeScript types for my classes into src/types/parse.ts."*
+- *"Turn on Live Queries for Message and show me how to subscribe to it."*
+
+**Ship**
+
 - *"Deploy my-app and tell me when it's live."*
-- *"Show the errors from the last hour."*
+- *"Put my-app on api.example.com. Which DNS record do I need?"*
+
+**Debug**
+
+- *"Show the errors from the last hour and find the cloud code that throws them."*
+- *"my-app has been slow since yesterday. What do the metrics say?"*
+- *"Why did my-app restart last night?"*
+
+**Secure**
+
+- *"Check my-app for security problems and tell me what to fix first."*
 - *"Who changed my-app's environment variables this week?"*
+
+**Scale and upgrade**
+
+- *"Does my-app need a bigger engine or more engines? Show me the numbers."*
+- *"What breaks in my cloud code if I move to Parse Server 6?"*
+
+More in [Build with AI on SashiDo](https://www.sashido.io/en/docs/developers/build-with-ai).
 
 ## Security
 
@@ -196,7 +257,7 @@ Tool calls are logged to stderr as JSON lines (tool, app, client, result, durati
 
 ## Support
 
-- [SashiDo documentation](https://www.sashido.io/en/docs)
+- [MCP server docs](https://www.sashido.io/en/docs/developers/mcp) and the [developer docs](https://www.sashido.io/en/docs/developers) (every page is also Markdown: add `.md`; [llms.txt](https://www.sashido.io/llms.txt) lists them)
 - [support@sashido.io](mailto:support@sashido.io)
 - [GitHub issues](https://github.com/sashido/sashido-mcp-server/issues)
 

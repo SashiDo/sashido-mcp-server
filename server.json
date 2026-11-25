@@ -1,0 +1,68 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.sashido/mcp-server",
+  "title": "SashiDo",
+  "description": "Backend for AI-built apps: database, auth, realtime, push, files and cloud code on Parse Server.",
+  "version": "0.4.1",
+  "websiteUrl": "https://www.sashido.io/en/docs/developers/mcp",
+  "repository": {
+    "url": "https://github.com/sashido/sashido-mcp-server",
+    "source": "github"
+  },
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.sashido.io/mcp",
+      "headers": [
+        {
+          "name": "Authorization",
+          "description": "Bearer and a SashiDo personal access token",
+          "isRequired": true,
+          "isSecret": true,
+          "value": "Bearer {token}",
+          "variables": {
+            "token": {
+              "description": "A SashiDo personal access token (Dashboard: Account > Access Tokens). Read-only is the safe start.",
+              "isRequired": true,
+              "isSecret": true
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@sashido/mcp-server",
+      "version": "0.4.1",
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "description": "A SashiDo personal access token (Dashboard: Account > Access Tokens). Read-only is the safe start.",
+          "isRequired": true,
+          "isSecret": true,
+          "name": "SASHIDO_ACCESS_TOKEN"
+        },
+        {
+          "name": "SASHIDO_READ_ONLY",
+          "description": "true: only the tools that change nothing",
+          "isRequired": false
+        },
+        {
+          "name": "SASHIDO_APPS",
+          "description": "Comma-separated app IDs: only these apps",
+          "isRequired": false
+        },
+        {
+          "name": "SASHIDO_FEATURES",
+          "description": "Comma-separated tool groups, e.g. objects,logs: only these",
+          "isRequired": false
+        }
+      ]
+    }
+  ]
+}

@@ -1,7 +1,8 @@
 {
   "name": "@sashido/mcp-server",
-  "version": "0.4.0",
-  "description": "MCP Server for SashiDo - Backend as a Service platform",
+  "version": "0.4.1",
+  "mcpName": "io.sashido/mcp-server",
+  "description": "MCP server for SashiDo: a managed Parse Server backend (database, auth, realtime, push, files, cloud code) that your AI assistant can create, deploy and debug",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
@@ -16,7 +17,7 @@
   ],
   "scripts": {
     "build": "tsc",
-    "prepublishOnly": "npm run build",
+    "prepublishOnly": "npm run clean && npm run build",
     "dev": "tsx watch src/bin/mcp-server.ts",
     "start": "node dist/bin/mcp-server.js --transport=http",
     "start:stdio": "node dist/bin/mcp-server.js --transport=stdio",
@@ -30,10 +31,26 @@
   },
   "keywords": [
     "mcp",
+    "mcp-server",
     "model-context-protocol",
     "sashido",
     "parse-server",
+    "parse",
     "baas",
+    "backend",
+    "backend-as-a-service",
+    "database",
+    "mongodb",
+    "authentication",
+    "realtime",
+    "push-notifications",
+    "cloud-functions",
+    "firebase-alternative",
+    "react-native",
+    "flutter",
+    "claude",
+    "claude-code",
+    "cursor",
     "ai"
   ],
   "author": "SashiDo",
@@ -48,7 +65,7 @@
   "bugs": {
     "url": "https://github.com/sashido/sashido-mcp-server/issues"
   },
-  "homepage": "https://github.com/sashido/sashido-mcp-server#readme",
+  "homepage": "https://www.sashido.io/en/docs/developers/mcp",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.25.2",
     "axios": "^1.6.0",
