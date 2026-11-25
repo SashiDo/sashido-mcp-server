@@ -2,6 +2,7 @@
   "name": "sashido",
   "version": "0.4.2",
   "description": "A managed Parse Server backend your assistant can create, deploy and debug: database, users, realtime, push, files, cloud code.",
+  "icon": "assets/icon.png",
   "author": {
     "name": "SashiDo",
     "url": "https://www.sashido.io"

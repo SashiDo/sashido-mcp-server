@@ -2,11 +2,22 @@
   "name": "sashido",
   "version": "0.4.2",
   "description": "A managed Parse Server backend your assistant can create, deploy and debug: database, users, realtime, push, files, cloud code.",
-  "author": { "name": "SashiDo" },
+  "logo": "assets/icon.png",
+  "author": {
+    "name": "SashiDo"
+  },
   "homepage": "https://www.sashido.io/en/docs/developers/mcp",
   "repository": "https://github.com/sashido/sashido-mcp-server",
   "license": "MIT",
-  "keywords": ["backend", "database", "parse-server", "baas", "auth", "push-notifications", "realtime"],
+  "keywords": [
+    "backend",
+    "database",
+    "parse-server",
+    "baas",
+    "auth",
+    "push-notifications",
+    "realtime"
+  ],
   "variables": {
     "type": "object",
     "properties": {
@@ -16,6 +27,8 @@
         "description": "A personal access token from the SashiDo Dashboard: Account > Access Tokens. Read-only is the safe start."
       }
     },
-    "required": ["SASHIDO_ACCESS_TOKEN"]
+    "required": [
+      "SASHIDO_ACCESS_TOKEN"
+    ]
   }
 }
