@@ -3,7 +3,7 @@
   "name": "io.sashido/mcp-server",
   "title": "SashiDo",
   "description": "Backend for AI-built apps: database, auth, realtime, push, files and cloud code on Parse Server.",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "websiteUrl": "https://www.sashido.io/en/docs/developers/mcp",
   "repository": {
     "url": "https://github.com/sashido/sashido-mcp-server",
@@ -35,7 +35,7 @@
     {
       "registryType": "npm",
       "identifier": "@sashido/mcp-server",
-      "version": "0.4.2",
+      "version": "0.4.3",
       "runtimeHint": "npx",
       "transport": {
         "type": "stdio"

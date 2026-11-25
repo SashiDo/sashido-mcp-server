@@ -140,6 +140,11 @@ export const TOOL_POLICY: Record<string, ToolPolicy> = {
 /** Tool groups for the `features` option: the folders under src/tools */
 export type ToolGroup = string;
 
+/** Every scope a tool needs: what a token with all permissions has */
+export function allScopes(): Scope[] {
+  return Array.from(new Set(Object.keys(TOOL_POLICY).map((name) => TOOL_POLICY[name]!.scope)));
+}
+
 export interface Access {
   /** Scopes of the access token */
   scopes: string[];

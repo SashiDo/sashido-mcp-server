@@ -112,6 +112,8 @@ claude mcp add --transport http sashido https://mcp.sashido.io/mcp \
 
 The local server also has the tools that read your files or fetch URLs (`upload_file_from_path`, `upload_file_from_url`). The hosted one doesn't.
 
+Started without `SASHIDO_ACCESS_TOKEN`, the local server still runs and lists its tools, and each call answers with how to create a token. That is for catalogs and inspectors that only ask what the server can do.
+
 **As a Claude Code plugin**
 
 ```

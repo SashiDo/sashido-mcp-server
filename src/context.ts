@@ -37,6 +37,11 @@ export interface ToolContext {
   appName(appObjectId: string): Promise<string>;
   /** An app's objectId from its objectId or its name */
   resolveApp(value: string): Promise<string>;
+  /**
+   * Set when the server runs without an access token (see stdio.ts): the
+   * tools are listed, and every call answers with this instead of running.
+   */
+  needsToken?: string;
 }
 
 export function createToolContext(
@@ -156,6 +161,9 @@ export function toolServer(
         };
       }
       const finalHandler = async (args: unknown, extra: unknown) => {
+        if (ctx && ctx.needsToken) {
+          return { content: [{ type: "text" as const, text: ctx.needsToken }], isError: true };
+        }
         const toolCall = {
           tool: name,
           mcpClient: clientOf(server, extra),
