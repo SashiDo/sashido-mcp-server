@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "sashido",
-      "source": "./",
+      "source": "./plugins/sashido",
       "description": "A managed Parse Server backend your assistant can create, deploy and debug."
     }
   ]

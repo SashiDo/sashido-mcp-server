@@ -11,7 +11,7 @@ const read = (file: string) => JSON.parse(readFileSync(new URL(`../${file}`, imp
 const pkg = read("package.json");
 const lock = read("package-lock.json");
 const server = read("server.json");
-const claudePlugin = read(".claude-plugin/plugin.json");
+const claudePlugin = read("plugins/sashido/.claude-plugin/plugin.json");
 const cursorPlugin = read(".cursor-plugin/plugin.json");
 
 describe("what a release publishes", () => {
