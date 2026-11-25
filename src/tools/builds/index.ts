@@ -7,7 +7,7 @@ export function registerBuildTools(server: ToolServer, ctx: ToolContext): void {
   // List Builds
   server.tool(
     "list_builds",
-    "List build history for an application",
+    "An app's builds of its cloud code repository and how each ended. Use it to see whether the last push built, and to get the buildId get_build_log takes.",
     {
       appObjectId: z.string().describe("The application object ID"),
       limit: z
@@ -65,7 +65,7 @@ export function registerBuildTools(server: ToolServer, ctx: ToolContext): void {
   // Trigger Build
   server.tool(
     "trigger_build",
-    "Trigger a new build for an application",
+    "Start a new build of an app's cloud code from its repository without a push, e.g. to retry a build that failed for a passing reason. Check it with list_builds and get_build_log.",
     {
       appObjectId: z.string().describe("The application object ID"),
       region: z.string().optional().describe("Target region (optional)"),
@@ -90,7 +90,7 @@ export function registerBuildTools(server: ToolServer, ctx: ToolContext): void {
   // Cancel Build
   server.tool(
     "cancel_build",
-    "Cancel a running build",
+    "Cancel a build that is running.",
     {
       appObjectId: z.string().describe("The application object ID"),
       buildName: z.string().describe("The name of the build to cancel"),

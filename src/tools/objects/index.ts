@@ -7,7 +7,7 @@ export function registerObjectTools(server: ToolServer, ctx: ToolContext): void 
   // Query Objects
   server.tool(
     'query_objects',
-    'Query objects from a class with optional filters, sorting, and pagination',
+    "Read the objects of a class with filters (a MongoDB-style where), sorting, paging, chosen fields, included pointers and a count. Use it to look at the real data when debugging, or to check what a client query returns.",
     {
       appObjectId: z.string().describe('The application object ID'),
       className: z.string().describe('The class name to query'),
@@ -93,7 +93,7 @@ export function registerObjectTools(server: ToolServer, ctx: ToolContext): void 
   // Get Single Object
   server.tool(
     'get_object',
-    'Get a single object by its objectId',
+    "One object of a class by its objectId.",
     {
       appObjectId: z.string().describe('The application object ID'),
       className: z.string().describe('The class name'),
@@ -117,7 +117,7 @@ export function registerObjectTools(server: ToolServer, ctx: ToolContext): void 
   // Create Object
   server.tool(
     'create_object',
-    'Create a new object in a class',
+    "Create an object in a class, e.g. test or seed data.",
     {
       appObjectId: z.string().describe('The application object ID'),
       className: z.string().describe('The class name'),
@@ -155,7 +155,7 @@ export function registerObjectTools(server: ToolServer, ctx: ToolContext): void 
   // Update Object
   server.tool(
     'update_object',
-    'Update an existing object by its objectId',
+    "Change fields of an object by its objectId. Fields that aren't given stay as they are.",
     {
       appObjectId: z.string().describe('The application object ID'),
       className: z.string().describe('The class name'),
@@ -194,7 +194,7 @@ export function registerObjectTools(server: ToolServer, ctx: ToolContext): void 
   // Delete Object
   server.tool(
     'delete_object',
-    'Delete an object by its objectId. WARNING: This action is irreversible!',
+    "Delete an object by its objectId. It can't be undone.",
     {
       appObjectId: z.string().describe('The application object ID'),
       className: z.string().describe('The class name'),

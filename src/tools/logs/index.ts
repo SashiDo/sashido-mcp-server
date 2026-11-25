@@ -7,7 +7,7 @@ export function registerLogTools(server: ToolServer, ctx: ToolContext): void {
   // Get Cloud Code Logs
   server.tool(
     'get_logs',
-    'Get cloud code logs (console.log, console.error, etc.) from the Parse Server. Useful for debugging cloud functions.',
+    "An app's logs: what its cloud code printed (console.log, console.error) and Parse Server's own messages, by level. Use it to follow what a cloud function, trigger or job did.",
     {
       appObjectId: z.string().describe('The application object ID'),
       level: z
@@ -91,7 +91,7 @@ export function registerLogTools(server: ToolServer, ctx: ToolContext): void {
   // Get Error Logs (convenience shortcut)
   server.tool(
     'get_error_logs',
-    'Get error logs from cloud code (shortcut for get_logs with level=error)',
+    "Only the errors from an app's logs. Start here when something fails: an error names the function or class and the message. Then read the code with read_cloud_code.",
     {
       appObjectId: z.string().describe('The application object ID'),
       limit: z

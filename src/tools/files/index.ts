@@ -44,7 +44,7 @@ export function registerFileTools(server: ToolServer, ctx: ToolContext): void {
   // Upload File from Base64
   server.tool(
     'upload_file',
-    'Upload a file to Parse Server from base64-encoded data',
+    "Upload a file to the app's file storage from base64 data, and get the URL it is served from. For small files; from a local path or a URL the local server has upload_file_from_path and upload_file_from_url.",
     {
       appObjectId: z.string().describe('The application object ID'),
       fileName: z.string().describe('The file name with extension (e.g., "image.png")'),
@@ -76,7 +76,7 @@ export function registerFileTools(server: ToolServer, ctx: ToolContext): void {
   // Upload File from URL
   server.tool(
     'upload_file_from_url',
-    'Download a file from a URL and upload it to Parse Server',
+    "Fetch a file from a URL and upload it to the app's file storage. Only on the local (stdio) server.",
     {
       appObjectId: z.string().describe('The application object ID'),
       sourceUrl: z.string().url().describe('The URL to download the file from'),
@@ -119,7 +119,7 @@ export function registerFileTools(server: ToolServer, ctx: ToolContext): void {
   // Upload File from local path (fastest - no LLM processing needed)
   server.tool(
     'upload_file_from_path',
-    'Upload a local file to Parse Server. This is the fastest method - just provide the file path.',
+    "Upload a file from the local disk to the app's file storage. Only on the local (stdio) server.",
     {
       appObjectId: z.string().describe('The application object ID'),
       filePath: z.string().describe('Absolute path to the local file (e.g., "/Users/me/image.png")'),

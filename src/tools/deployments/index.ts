@@ -24,7 +24,7 @@ export function registerDeploymentTools(server: ToolServer, ctx: ToolContext): v
   // Deploy App
   server.tool(
     'deploy_app',
-    'Deploy an application to production',
+    "Roll the app out again with its current build and settings. Use it when a change needs a new deployment, or to restart an app that misbehaves. Follow with wait_for_deployment.",
     {
       appObjectId: z.string().describe('The application object ID'),
       region: z.string().optional().describe('Target region (optional)'),
@@ -85,7 +85,7 @@ export function registerDeploymentTools(server: ToolServer, ctx: ToolContext): v
   // Scale App
   server.tool(
     'scale_app',
-    'Configure scaling for an application',
+    "Set how many instances run the app (min), or turn auto-scaling on between min and max. Use it when get_process_metrics shows the CPU at its limit, or one instance isn't enough for the traffic. It affects billing, and only the app's owner can do it. Check the current values with get_app_infrastructure first.",
     {
       appObjectId: z.string().describe('The application object ID'),
       // both are required: the API computes the new limits from them, and
@@ -128,7 +128,7 @@ export function registerDeploymentTools(server: ToolServer, ctx: ToolContext): v
   // Set High Availability
   server.tool(
     'set_high_availability',
-    'Enable or disable high availability for an application',
+    "Turn high availability on or off. With it on the app always runs at least three instances with health checks, so one can restart without clients noticing. It affects billing and resets the scaling limits, and only the app's owner can do it.",
     {
       appObjectId: z.string().describe('The application object ID'),
       enabled: z.boolean().describe('Enable or disable high availability'),
@@ -153,7 +153,7 @@ export function registerDeploymentTools(server: ToolServer, ctx: ToolContext): v
   // Update App Name
   server.tool(
     'update_app_name',
-    'Update the name of an application',
+    "Rename an app. Its objectId, keys and URLs stay the same.",
     {
       appObjectId: z.string().describe('The application object ID'),
       name: z.string().describe('New application name'),

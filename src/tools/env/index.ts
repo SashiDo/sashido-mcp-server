@@ -46,7 +46,7 @@ export function registerEnvTools(server: ToolServer, ctx: ToolContext): void {
   // SECURITY: Redacts values of sensitive env vars
   server.tool(
     "list_env_vars",
-    "List environment variables for an application. Note: Sensitive values are redacted for security.",
+    "An app's environment variables (process.env in its cloud code). Values that look secret are redacted. Use it to check what the cloud code is configured with.",
     {
       appObjectId: z.string().describe("The application object ID"),
     },
@@ -73,7 +73,7 @@ export function registerEnvTools(server: ToolServer, ctx: ToolContext): void {
   // Set Environment Variable
   server.tool(
     "set_env_var",
-    "Set or update an environment variable for an application",
+    "Set or change an environment variable of an app (process.env in its cloud code), e.g. the key of a service the cloud code calls. The app is redeployed: follow with wait_for_deployment.",
     {
       appObjectId: z.string().describe("The application object ID"),
       name: z.string().describe("Environment variable name"),
@@ -110,7 +110,7 @@ export function registerEnvTools(server: ToolServer, ctx: ToolContext): void {
   // Delete Environment Variable
   server.tool(
     "delete_env_var",
-    "Delete an environment variable from an application",
+    "Remove an environment variable from an app. The app is redeployed, and cloud code that reads the variable gets undefined.",
     {
       appObjectId: z.string().describe("The application object ID"),
       name: z.string().describe("Environment variable name to delete"),

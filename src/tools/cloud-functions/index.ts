@@ -7,7 +7,7 @@ export function registerCloudFunctionTools(server: ToolServer, ctx: ToolContext)
   // Call Cloud Function
   server.tool(
     'call_cloud_function',
-    'Execute a Cloud Code function on the Parse Server',
+    "Call a cloud function of the app (Parse.Cloud.define) with parameters and get its result or error. Use it to test a function after a deployment, or to reproduce an error from the logs.",
     {
       appObjectId: z.string().describe('The application object ID'),
       functionName: z.string().describe('The name of the cloud function to call'),
@@ -66,7 +66,7 @@ export function registerCloudFunctionTools(server: ToolServer, ctx: ToolContext)
   // List Cloud Code Files
   server.tool(
     'list_cloud_files',
-    'List all cloud code files deployed to the server',
+    "The cloud code files the app runs now. Start here to find where a function, trigger or job is defined.",
     {
       appObjectId: z.string().describe('The application object ID'),
     },
@@ -133,7 +133,7 @@ export function registerCloudFunctionTools(server: ToolServer, ctx: ToolContext)
   // Read Cloud Code File
   server.tool(
     'read_cloud_code',
-    'Read the contents of a cloud code file from the server. Use this to see what functions are defined.',
+    "Read a cloud code file as it is deployed. Use it to see what really runs, which may differ from a local checkout, when tracing an error from get_error_logs to its code.",
     {
       appObjectId: z.string().describe('The application object ID'),
       filePath: z.string().describe('The path to the file (e.g., "main.js" or "cloud/main.js")'),

@@ -7,7 +7,7 @@ export function registerAppTools(server: ToolServer, ctx: ToolContext): void {
   // List Apps
   server.tool(
     "list_apps",
-    "List all applications owned by the authenticated user",
+    "The SashiDo apps this token can reach, each with its objectId and name. Start here: the other tools take an app's objectId.",
     {
     },
     async (args, extra) => {
@@ -29,7 +29,7 @@ export function registerAppTools(server: ToolServer, ctx: ToolContext): void {
   // Get App (by objectId from list_apps)
   server.tool(
     "get_app",
-    "Get detailed information about a specific application by its objectId",
+    "One app's details, with what a client app needs to connect to it through the Parse SDK: the app ID, the client keys and the server URL. The master key and other secrets are never included. Use it to wire a web or mobile app to its backend.",
     {
       appObjectId: z.string().describe("The application object ID"),
     },
@@ -66,7 +66,7 @@ export function registerAppTools(server: ToolServer, ctx: ToolContext): void {
   // Create App
   server.tool(
     "create_app",
-    "Create a new Parse Server application",
+    "Create a new SashiDo app: a managed Parse Server backend with its own MongoDB database, user accounts and login, file storage, push notifications, Live Queries, cloud code and background jobs. Use it when the app being built needs a backend (accounts, shared data, realtime, push, server-side logic) and has none yet. Next: create_class to design the data, update_class_permissions to lock it down, generate_types for the client, get_app for the keys. A new app counts toward the account's plan.",
     {
       name: z.string().describe("Application name"),
       region: z

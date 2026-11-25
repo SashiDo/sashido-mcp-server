@@ -7,7 +7,7 @@ export function registerPushTools(server: ToolServer, ctx: ToolContext): void {
   // Send Push Notification
   server.tool(
     'send_push',
-    'Send a push notification to devices',
+    "Send a push notification to the app's iOS and Android devices: to everyone, to channels or to the installations matching a query, now or at a set time. It reaches real users: check the audience before sending.",
     {
       appObjectId: z.string().describe('The application object ID'),
       alert: z.string().describe('The notification message text'),
@@ -144,7 +144,7 @@ export function registerPushTools(server: ToolServer, ctx: ToolContext): void {
   // Send Push to Channels (simplified version)
   server.tool(
     'send_push_to_channels',
-    'Send a simple push notification to specific channels',
+    "Send a plain push notification to the devices subscribed to some channels. It reaches real users.",
     {
       appObjectId: z.string().describe('The application object ID'),
       channels: z.string().describe('Comma-separated list of channels (e.g., "news,sports,updates")'),

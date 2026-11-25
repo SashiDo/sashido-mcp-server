@@ -7,7 +7,7 @@ export function registerClassTools(server: ToolServer, ctx: ToolContext): void {
   // List Classes
   server.tool(
     'list_classes',
-    'List all classes (schemas) in a Parse Server application',
+    "An app's data model: every class with its fields and their types. Read it before writing queries, cloud code or client code against the app.",
     {
       appObjectId: z.string().describe('The application object ID'),
     },
@@ -39,7 +39,7 @@ export function registerClassTools(server: ToolServer, ctx: ToolContext): void {
   // Get Class Schema
   server.tool(
     'get_class',
-    'Get detailed schema information for a specific class',
+    "One class of an app: its fields, their types and what pointers point to.",
     {
       appObjectId: z.string().describe('The application object ID'),
       className: z.string().describe('The class name'),
@@ -70,7 +70,7 @@ export function registerClassTools(server: ToolServer, ctx: ToolContext): void {
   // Create Class
   server.tool(
     'create_class',
-    'Create a new class (schema) in the Parse Server application',
+    "Create a class (a collection, like a table) with its fields. Use it to design the data model of a new app or feature. Set who may read and write it with update_class_permissions right after, then generate_types for the client code.",
     {
       appObjectId: z.string().describe('The application object ID'),
       className: z.string().describe('The class name to create'),
@@ -134,7 +134,7 @@ export function registerClassTools(server: ToolServer, ctx: ToolContext): void {
   // Add Field
   server.tool(
     'add_field',
-    'Add a new field to an existing class',
+    "Add a field to a class: a String, Number, Boolean, Date, File, GeoPoint, Polygon, Array or Object, or a Pointer or Relation to another class (targetClass).",
     {
       appObjectId: z.string().describe('The application object ID'),
       className: z.string().describe('The class name'),
@@ -182,7 +182,7 @@ export function registerClassTools(server: ToolServer, ctx: ToolContext): void {
   // Delete Field
   server.tool(
     'delete_field',
-    'Delete a field from a class. WARNING: This will delete all data in this field!',
+    "Remove a field from a class, with its value in every object. It can't be undone.",
     {
       appObjectId: z.string().describe('The application object ID'),
       className: z.string().describe('The class name'),
@@ -220,7 +220,7 @@ export function registerClassTools(server: ToolServer, ctx: ToolContext): void {
   // Get Class Level Permissions
   server.tool(
     'get_class_permissions',
-    'Get Class Level Permissions (CLP) for a specific class',
+    "The class-level permissions of a class: who may get, find, count, create, update and delete its objects, and add fields. Use it to check that a class isn't open to everyone before the app ships.",
     {
       appObjectId: z.string().describe('The application object ID'),
       className: z.string().describe('The class name'),
@@ -255,7 +255,7 @@ export function registerClassTools(server: ToolServer, ctx: ToolContext): void {
   // Update Class Level Permissions
   server.tool(
     'update_class_permissions',
-    'Update Class Level Permissions (CLP) for a class. Use "*" for public access, role:RoleName for roles, or userId for specific users.',
+    "Set who may get, find, create, update and delete the objects of a class, and add fields to it: everyone (\"*\"), any signed-in user (requiresAuthentication), a role (role:Name) or a user's id. Use it to lock a class down. Clients that relied on the old permissions stop working, so check get_class_permissions first.",
     {
       appObjectId: z.string().describe('The application object ID'),
       className: z.string().describe('The class name'),

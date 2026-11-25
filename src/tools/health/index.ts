@@ -7,7 +7,7 @@ export function registerHealthTools(server: ToolServer, ctx: ToolContext): void 
   // Check App Health
   server.tool(
     'check_app_health',
-    'Check if an application\'s Parse Server is healthy and running',
+    "Whether an app's Parse Server answers right now. Use it after a deployment or when clients report errors. For how it has been doing over time, and why, use get_process_metrics.",
     {
       appObjectId: z.string().describe('The application object ID'),
     },

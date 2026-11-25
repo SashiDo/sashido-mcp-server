@@ -7,7 +7,7 @@ export function registerEngineTools(server: ToolServer, ctx: ToolContext): void 
   // List Available Engines
   server.tool(
     'list_engines',
-    'List all available Parse Server engines with their specs and pricing',
+    "The engines the account's plan offers: the CPU and memory of each, what it costs, and whether it supports auto-scaling and high availability. Read it before set_engine.",
     {
     },
     async (args, extra) => {
@@ -45,7 +45,7 @@ export function registerEngineTools(server: ToolServer, ctx: ToolContext): void 
   // Change Engine
   server.tool(
     'set_engine',
-    'Change the Parse Server engine for an application. WARNING: This affects your monthly billing!',
+    "Change an app's engine: the CPU and memory each of its instances has. Use it when get_process_metrics shows the engine at its memory limit, or CPU-heavy cloud code needs more. It affects billing (confirmBillingChange), only the app's owner can do it, and the app is redeployed.",
     {
       appObjectId: z.string().describe('The application object ID'),
       engineName: z.string().describe('The engine name (e.g., "pico", "nano", "micro", "small", "medium", "large")'),

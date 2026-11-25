@@ -12,7 +12,7 @@ export function registerJobTools(server: ToolServer, ctx: ToolContext): void {
   // List Available Jobs (defined in cloud code)
   server.tool(
     "list_available_jobs",
-    "List all background jobs defined in cloud code that can be scheduled",
+    "The background jobs defined in an app's cloud code (Parse.Cloud.job), which run_job and schedule_job take by name.",
     {
       appObjectId: z.string().describe("The application object ID"),
     },
@@ -74,7 +74,7 @@ export function registerJobTools(server: ToolServer, ctx: ToolContext): void {
   // List Scheduled Jobs
   server.tool(
     "list_scheduled_jobs",
-    "List all scheduled background jobs for the application",
+    "The jobs an app has scheduled: which job, when it first ran or will run, and how often it repeats.",
     {
       appObjectId: z.string().describe("The application object ID"),
       limit: z.number().optional().describe("Maximum number of jobs to return"),
@@ -143,7 +143,7 @@ export function registerJobTools(server: ToolServer, ctx: ToolContext): void {
   // Get Job Execution Status/History
   server.tool(
     "get_job_status",
-    "Get the execution history and status of background jobs",
+    "The recent runs of an app's background jobs: when, how each ended and its message. Use it to see whether a scheduled job really runs, and why one failed.",
     {
       appObjectId: z.string().describe("The application object ID"),
       limit: z
@@ -218,7 +218,7 @@ export function registerJobTools(server: ToolServer, ctx: ToolContext): void {
   // Schedule a Job
   server.tool(
     "schedule_job",
-    "Schedule a background job to run at a specific time, optionally repeating",
+    "Schedule a job defined in cloud code to run once or every N minutes, e.g. a nightly cleanup or a report. Pass objectId to change an existing schedule.",
     {
       appObjectId: z.string().describe("The application object ID"),
       jobName: z
@@ -320,7 +320,7 @@ export function registerJobTools(server: ToolServer, ctx: ToolContext): void {
   // Run Job Immediately
   server.tool(
     "run_job",
-    "Run a background job immediately (one-time execution)",
+    "Run a job defined in cloud code once, now. Use it to test a job or to run a backfill. See how it went with get_job_status.",
     {
       appObjectId: z.string().describe("The application object ID"),
       jobName: z
@@ -381,7 +381,7 @@ export function registerJobTools(server: ToolServer, ctx: ToolContext): void {
   // Delete Scheduled Job
   server.tool(
     "delete_job",
-    "Delete a scheduled background job",
+    "Remove a job's schedule. The job's code stays in the cloud code and can be scheduled again.",
     {
       appObjectId: z.string().describe("The application object ID"),
       objectId: z
