@@ -308,6 +308,7 @@ export function install(editors: Editor[], options: InstallOptions = {}): { done
   }
   ctx.log('');
   ctx.log('To update later, run the same command again:  npx @sashido/mcp-server@latest install');
+  ctx.log('To check that everything works:               npx @sashido/mcp-server@latest doctor');
   return { done, failed };
 }
 
@@ -378,7 +379,8 @@ const USAGE = `Usage: npx @sashido/mcp-server@latest <command> [options]
   install     Connect your editors to SashiDo and give them the SashiDo skills.
               Run it again to update.
   uninstall   Remove what install wrote.
-  status      Show what is installed.
+  doctor      Check the whole setup: the server, the token, each editor, the skills.
+  status      Show what this command installed.
 
 Options for install:
   --claude --cursor --codex   Only these editors (default: the ones found on this machine)
@@ -387,7 +389,7 @@ Options for install:
 Without a command it starts the MCP server itself (what an editor runs).`;
 
 /** The command line: `true` when the arguments were a command of ours */
-export function runCommand(argv: string[], options: InstallOptions = {}): boolean {
+export async function runCommand(argv: string[], options: InstallOptions = {}): Promise<boolean> {
   const command = argv[0];
   const ctx = context({ ...options, dryRun: options.dryRun || argv.indexOf('--dry-run') !== -1 });
   const pass: InstallOptions = { ...options, dryRun: ctx.dryRun };
@@ -401,6 +403,14 @@ export function runCommand(argv: string[], options: InstallOptions = {}): boolea
   }
   if (command === 'status') {
     status(pass);
+    return true;
+  }
+  if (command === 'doctor') {
+    const { doctor } = await import('./doctor.js');
+    const healthy = await doctor({ home: ctx.home, shell: ctx.shell, env: process.env, fetch, log: ctx.log });
+    if (!healthy) {
+      process.exitCode = 1;
+    }
     return true;
   }
   if (command !== 'install' && command !== 'update') {

@@ -196,21 +196,21 @@ describe("uninstall and status", () => {
 });
 
 describe("the command line", () => {
-  it("installs for the editors found on the machine, or the ones named", () => {
+  it("installs for the editors found on the machine, or the ones named", async () => {
     mkdirSync(join(home, ".cursor"));
     present = [];
-    expect(runCommand(["install"], options())).toBe(true);
+    expect(await runCommand(["install"], options())).toBe(true);
     expect(existsSync(join(home, ".cursor", "mcp.json"))).toBe(true);
     expect(ran).toEqual([]);
 
     present = ["claude"];
-    expect(runCommand(["install", "--claude"], options())).toBe(true);
+    expect(await runCommand(["install", "--claude"], options())).toBe(true);
     expect(ran.length).toBe(3);
   });
 
-  it("leaves everything else to the server itself", () => {
-    expect(runCommand([], options())).toBe(false);
-    expect(runCommand(["--transport=http"], options())).toBe(false);
+  it("leaves everything else to the server itself", async () => {
+    expect(await runCommand([], options())).toBe(false);
+    expect(await runCommand(["--transport=http"], options())).toBe(false);
   });
 });
 

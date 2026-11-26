@@ -10,7 +10,7 @@ const transport = transportArg?.split('=')[1] ?? 'stdio';
 async function main(): Promise<void> {
   try {
     // install, uninstall, status, help: set an editor up instead of serving
-    if (runCommand(args)) {
+    if (await runCommand(args)) {
       return;
     }
     if (transport === 'stdio') {

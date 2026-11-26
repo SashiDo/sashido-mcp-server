@@ -83,7 +83,7 @@ npx @sashido/mcp-server@latest install
 - Claude Code gets the SashiDo plugin; it then asks for your token once and keeps it in secure storage (`/plugin configure sashido@sashido`).
 - Cursor and Codex read the token from the environment variable `SASHIDO_ACCESS_TOKEN`; put it in your shell profile.
 - The command never asks for the token and never writes it to a file.
-- Run it again to update. `install --dry-run` shows what it would do, `status` what is installed, `uninstall` removes exactly what it wrote. `--claude`, `--cursor`, `--codex` pick the editors.
+- Run it again to update. `doctor` checks the whole setup (the server, your token, each editor, the skills) and says what to do about anything that is off. `install --dry-run` shows what it would do, `uninstall` removes exactly what it wrote. `--claude`, `--cursor`, `--codex` pick the editors.
 
 Or set a client up by hand:
 
