@@ -5,7 +5,7 @@ description: Create a working backend on SashiDo for an app from a plain descrip
 
 # A backend from a description
 
-The person describes the app. You leave them with a backend that runs, is locked down, and is connected to their project. Follow the three rules in the `backend` skill: their words, one plan and one "yes", an honest summary at the end.
+The person describes the app. You leave them with a backend that runs, is locked down, and is connected to their project. Follow the rules in the `backend` skill: their words, one plan and one "yes", secrets stay with them, an honest summary at the end.
 
 ## 1. Understand what the app needs
 
@@ -50,7 +50,7 @@ Class permissions say which kind of person may do an operation, not which object
 ## 4. Connect the project
 
 1. `generate_types` with the client's language: `typescript`, `swift`, `kotlin` or `dart`. Put the result where the project keeps its models; tell the person the file.
-2. The client needs three values: the app ID, the client key (the JavaScript key for a web app) and the API URL. `get_app` gives you the app ID. The other two are never given to an access token: ask the person to copy them from the SashiDo Dashboard, App Settings › Security & Keys, into the project's configuration themselves (an environment file, following what the project already does). Prepare that file with the app ID filled in and the two names left empty, and initialize the Parse SDK once at startup from it. These three are meant for client apps. The master key must never be in a client.
+2. The client needs three values, and `get_app` gives all three: the app ID, the client key (the JavaScript key for a web app, the .NET key for Unity) and the API URL (`serverUrl`; `publicServerUrl` if the app has its own domain). Put them where the project keeps configuration (an environment file, following what the project already does), and initialize the Parse SDK once at startup from it. These are public values: every client app is shipped with them. The master key is never given to you and must never be in a client. If `get_app` returns no keys, the person copies them from the SashiDo Dashboard, App Settings › Security & Keys.
 3. If the project has no Parse SDK yet, add the one for its platform and say that you did.
 4. Write or adjust the sign-up, sign-in and the first save and query against the typed models, if the person asked for working screens.
 
@@ -63,8 +63,8 @@ Call `get_app_advice`. Fix what it reports about the classes you made. Then, if 
 > **Your backend is running** in Europe.
 > It stores: people, notes, and who a note is shared with.
 > Only signed-in people can use it. A note is visible to its author and to those it is shared with.
-> Your project has the typed models in `src/models/` and the app ID in `.env`.
+> Your project has the typed models in `src/models/` and is connected.
 > Checked: signing up, saving a note, and that nobody reads it without signing in.
-> Left for you: copy the client key and the API URL from the Dashboard (App Settings › Security & Keys) into `.env`; the two lines are there, empty. You can see the data in the Dashboard under Database.
+> Left for you: nothing. You can see the data in the SashiDo Dashboard under Database.
 
 List anything you did not do or could not check.

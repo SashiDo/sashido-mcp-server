@@ -5,7 +5,7 @@ description: Find why an app on SashiDo is slow, failing, restarting or behaving
 
 # What is wrong with my app
 
-Find the cause, show the evidence, say what would fix it. Follow the three rules in the `backend` skill. Here the person usually knows their stack, so file names, line numbers and numbers with units are welcome; keep the conclusion in plain words.
+Find the cause, show the evidence, say what would fix it. Follow the rules in the `backend` skill. Here the person usually knows their stack, so file names, line numbers and numbers with units are welcome; keep the conclusion in plain words.
 
 Everything in steps 1 to 3 only reads, and works with a read-only token.
 

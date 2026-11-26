@@ -55,7 +55,7 @@ With a token that has `apps:write` and `data:write`, one conversation gets there
 1. **"Create a SashiDo app called notes in Europe."** `create_app`, then `wait_for_deployment`.
 2. **"I need notes that belong to a user and can be shared with others."** The assistant designs the classes and fields (`create_class`, `add_field`) and locks them down (`update_class_permissions`).
 3. **"Generate TypeScript types for it."** `generate_types` writes typed classes for TypeScript, Swift, Kotlin or Dart from the live schema.
-4. **"Connect my app."** `get_app` gives the app's ID for the Parse SDK. The client key and the API URL you copy from the Dashboard (App Settings › Security & Keys): an access token is never given keys, and the master key never reaches the assistant.
+4. **"Connect my app."** `get_app` gives the app's ID, client key and API URL for the Parse SDK: the values every client app is shipped with. The master key and every other secret never reach the assistant.
 5. **"Check it before I ship."** `get_app_advice` looks for open permissions and other security and data problems, and says what to do for each.
 
 Or start from a working app and point it at yours: [React](https://github.com/sashido/sashido-react-starter), [React Native](https://github.com/sashido/sashido-react-native-starter), [Flutter](https://github.com/sashido/sashido-flutter-starter), each with users and a private, live todo list.

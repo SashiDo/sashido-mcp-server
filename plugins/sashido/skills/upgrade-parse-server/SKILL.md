@@ -5,7 +5,7 @@ description: Move an app on SashiDo to a newer Parse Server version without brea
 
 # Upgrade Parse Server
 
-The person has a Parse app and knows Parse, so its terms are fine here. Follow the other two rules in the `backend` skill: one plan and one "yes", an honest summary.
+The person has a Parse app and knows Parse, so its terms are fine here. Follow the other rules in the `backend` skill: one plan and one "yes", secrets stay with the person, an honest summary.
 
 The order matters: **code first, version second.** The code is changed so that it works on both the old and the new version, deployed and verified on the old one, and only then is the version switched. That is what makes the way back a single step.
 

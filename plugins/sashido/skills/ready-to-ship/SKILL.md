@@ -5,7 +5,7 @@ description: Check a SashiDo app before it goes live or before a deploy, and say
 
 # Ready to ship
 
-Answer one question: can this go live, and if not, what first. Follow the three rules in the `backend` skill.
+Answer one question: can this go live, and if not, what first. Follow the rules in the `backend` skill.
 
 This works with a read-only token. Fixing needs a token that may change the app.
 
