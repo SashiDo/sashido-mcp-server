@@ -24,6 +24,11 @@ describe("what a release publishes", () => {
     expect(server.packages.map((p: { version: string }) => p.version)).toEqual([SERVER_VERSION]);
     expect(claudePlugin.version).toBe(SERVER_VERSION);
     expect(cursorPlugin.version).toBe(SERVER_VERSION);
+    // the skills say their version, and the server's instructions the current one
+    expect(readFileSync(new URL("../plugins/sashido/skills/backend/SKILL.md", import.meta.url), "utf8")).toContain(
+      `These skills are version ${SERVER_VERSION}.`,
+    );
+    expect(pkg.files).toContain("plugins/sashido/skills");
   });
 
   it("is the same server for npm and for the MCP Registry", () => {

@@ -18,8 +18,10 @@ With it Claude can create an app, design the classes and their permissions, gene
    From a terminal the same is two steps, because the command doesn't ask for the token:
 
    ```
-   claude plugin install sashido --marketplace sashido/sashido-mcp-server
+   npx @sashido/mcp-server@latest install --claude
    ```
+
+   (it runs `claude plugin install sashido --marketplace sashido/sashido-mcp-server` for you, over HTTPS; run it again later to update)
 
    then, in Claude Code, `/plugin configure sashido@sashido` to enter the token and `/reload-plugins`. The marketplace is cloned over SSH; without a GitHub SSH key set `CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1` first.
 

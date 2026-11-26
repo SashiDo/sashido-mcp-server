@@ -74,6 +74,19 @@ The dashboard shows ready configurations for the clients below.
 
 ### 2. Add the server to your client
 
+**One command** finds Claude Code, Cursor and Codex on your machine, connects them and gives them the SashiDo skills (how to do whole jobs: a backend from a description, a check before launch, finding what is wrong, upgrading Parse Server):
+
+```bash
+npx @sashido/mcp-server@latest install
+```
+
+- Claude Code gets the SashiDo plugin; it then asks for your token once and keeps it in secure storage (`/plugin configure sashido@sashido`).
+- Cursor and Codex read the token from the environment variable `SASHIDO_ACCESS_TOKEN`; put it in your shell profile.
+- The command never asks for the token and never writes it to a file.
+- Run it again to update. `install --dry-run` shows what it would do, `status` what is installed, `uninstall` removes exactly what it wrote. `--claude`, `--cursor`, `--codex` pick the editors.
+
+Or set a client up by hand:
+
 The hosted server is at **`https://mcp.sashido.io/mcp`** (Streamable HTTP), with `https://mcp.sashido.io/sse` for clients that only speak SSE. The token goes in the `Authorization` header.
 
 **Claude Code**

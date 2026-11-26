@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { runCommand } from '../install/index.js';
 import { startStdioServer } from '../transports/stdio.js';
 
 const args = process.argv.slice(2);
@@ -8,6 +9,10 @@ const transport = transportArg?.split('=')[1] ?? 'stdio';
 
 async function main(): Promise<void> {
   try {
+    // install, uninstall, status, help: set an editor up instead of serving
+    if (runCommand(args)) {
+      return;
+    }
     if (transport === 'stdio') {
       await startStdioServer();
     } else if (transport === 'http') {
