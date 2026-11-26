@@ -465,6 +465,35 @@ describe("infrastructure", () => {
     expect(info).toMatch(/parse-server-deployment-110 shows Running for 300 min: it never ended/);
   });
 
+  it("isn't done while a build runs or the app still reports the old version: a version switch rolls out twice", async () => {
+    const P = "/apps/app1/parse";
+    api.answers.set("GET /apps/app1/deployments", { data: [] });
+    // a newer deployment serves, with the old image, while the build of the new version runs
+    api.answers.set("GET /processes/app1/latest-deployment", () => serving(251));
+    api.answers.set("GET /apps/app1/builds", { data: [{ objectId: "b3", name: "parse-server-buildconfig-3", number: 3, phase: "Running" }] });
+    api.answers.set(`GET ${P}/health`, { status: "ok", version: "3.1.3" });
+    try {
+      let text = (await call("wait_for_deployment", { appObjectId: "app1", after: 250, version: "6.5.11", timeoutSeconds: 5 })).content[0]!.text;
+      expect(text).toMatch(/a build is still running/);
+      expect(text).toMatch(/Not done yet: call wait_for_deployment again with after: 250 and version: "6\.5\.11"/);
+      expect(text).not.toMatch(/serves traffic now/);
+
+      // the build ended, the old image still answers
+      api.answers.set("GET /apps/app1/builds", { data: [{ objectId: "b3", name: "parse-server-buildconfig-3", number: 3, phase: "Complete" }] });
+      text = (await call("wait_for_deployment", { appObjectId: "app1", after: 250, version: "6.5.11", timeoutSeconds: 5 })).content[0]!.text;
+      expect(text).toMatch(/still reports Parse Server 3\.1\.3, not 6\.5\.11/);
+
+      // the deployment with the new image serves
+      api.answers.set("GET /processes/app1/latest-deployment", () => serving(252));
+      api.answers.set(`GET ${P}/health`, { status: "ok", version: "6.5.11" });
+      text = (await call("wait_for_deployment", { appObjectId: "app1", after: 250, version: "6.5.11", timeoutSeconds: 5 })).content[0]!.text;
+      expect(text).toMatch(/parse-server-deployment-252 serves traffic now, 1 container reporting, and the app reports Parse Server 6\.5\.11/);
+    } finally {
+      api.answers.set("GET /apps/app1/builds", { data: [] });
+    }
+    // two of the three calls wait out their (shortest allowed) five seconds
+  }, 30000);
+
   it("waits until a newer deployment serves traffic", async () => {
     let calls = 0;
     api.answers.set("GET /processes/app1/latest-deployment", () => serving(++calls < 3 ? 250 : 251));

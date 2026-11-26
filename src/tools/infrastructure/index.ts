@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { ToolContext, ToolServer } from "../../context.js";
 import { App, ParseServerVersion } from "../../client/sashido.js";
-import { DeploymentState, deploymentState, describeDeploymentState, endedBadly } from "./deployments.js";
+import { versionParts } from "../../upgrade/versions.js";
+import { DeploymentState, IN_PROGRESS, deploymentState, describeDeploymentState, endedBadly } from "./deployments.js";
 // how often wait_for_deployment looks (tests make it short)
 const POLL_MS = Number(process.env.SASHIDO_POLL_MS) || 5000;
 // time a poll's API calls may take, kept free before the deadline
@@ -58,6 +59,13 @@ async function findApp(ctx: ToolContext, appObjectId: string): Promise<App> {
   return app;
 }
 
+/** "6.5.11" against what the app's health check says ("6.5.11", "v6.5.11", a tag) */
+function sameVersion(reported: string, expected: string): boolean {
+  const a = versionParts(reported);
+  const b = versionParts(expected);
+  return a[0] !== 0 && a[0] === b[0] && a[1] === b[1] && a[2] === b[2];
+}
+
 export function registerInfrastructureTools(server: ToolServer, ctx: ToolContext): void {
   server.tool(
     "get_app_infrastructure",
@@ -75,7 +83,7 @@ export function registerInfrastructureTools(server: ToolServer, ctx: ToolContext
 
   server.tool(
     "wait_for_deployment",
-    "Wait until a newer deployment of the app serves traffic, e.g. after deploy_app, set_env_var, set_engine or change_parse_server_version, and say how it went. Returns before clients give up on the call (timeoutSeconds): call it again if it's still rolling out.",
+    "Wait until a newer deployment of the app serves traffic and no build is still running, e.g. after deploy_app, set_env_var, set_engine or change_parse_server_version (then pass version, to wait until the app reports it), and say how it went. Returns before clients give up on the call (timeoutSeconds): call it again if it's still rolling out.",
     {
       appObjectId: z.string().describe("The application object ID"),
       timeoutSeconds: z
@@ -92,6 +100,12 @@ export function registerInfrastructureTools(server: ToolServer, ctx: ToolContext
         .describe(
           "Wait for a deployment newer than this number: the one deploy_app or change_parse_server_version tell, or the previous wait_for_deployment's. Default: the one serving now",
         ),
+      version: z
+        .string()
+        .optional()
+        .describe(
+          'After change_parse_server_version: the version expected, e.g. "6.5.11". Waits until the app itself reports it, not only until a newer deployment serves',
+        ),
     },
     async (args) => {
       const client = ctx.sashido();
@@ -106,10 +120,28 @@ export function registerInfrastructureTools(server: ToolServer, ctx: ToolContext
       const quietBy = args.after === undefined ? Date.now() + 30000 : Infinity;
       let state = start;
       for (;;) {
+        // A newer deployment serving is not yet "done" when a build is still
+        // running (the deployment that carries its result comes after it), or
+        // when the app still reports the version it is being switched away
+        // from: a version switch rolls out twice, the second time with the
+        // new image.
+        let pending = "";
         if (state.serving && state.serving.number > before) {
-          return text(
-            `${state.serving.name} serves traffic now, ${state.serving.containers} container${state.serving.containers === 1 ? "" : "s"} reporting.`,
+          const building = (await client.listBuilds(args.appObjectId, 3).catch(() => [])).find((b) =>
+            IN_PROGRESS.includes(String((b as { phase?: string }).phase)),
           );
+          const reported = args.version
+            ? String(((await ctx.parse(args.appObjectId).checkHealth().catch(() => ({}))) as { version?: unknown }).version || "")
+            : "";
+          if (building) {
+            pending = `${state.serving.name} serves traffic, but a build is still running: the deployment that follows it is the one to wait for.`;
+          } else if (args.version && !sameVersion(reported, args.version)) {
+            pending = `${state.serving.name} serves traffic, but the app ${reported ? `still reports Parse Server ${reported}` : "doesn't answer its health check yet"}, not ${args.version}: the new version isn't deployed yet.`;
+          } else {
+            return text(
+              `${state.serving.name} serves traffic now, ${state.serving.containers} container${state.serving.containers === 1 ? "" : "s"} reporting${args.version ? `, and the app reports Parse Server ${reported}` : ""}.`,
+            );
+          }
         }
         for (const d of state.records || []) {
           if (!known.has(d.objectId)) {
@@ -125,6 +157,11 @@ export function registerInfrastructureTools(server: ToolServer, ctx: ToolContext
         }
         if (!state.rolling && watched.length === 0 && Date.now() > quietBy) {
           return text(`Nothing is rolling out. ${describeDeploymentState(state)[0]}`);
+        }
+        if (pending && Date.now() + POLL_MS + POLL_SLACK_MS > deadline) {
+          return text(
+            `${pending} Not done yet: call wait_for_deployment again with after: ${before}${args.version ? ` and version: "${args.version}"` : ""}. A version switch builds the app first and takes several minutes.`,
+          );
         }
         if (Date.now() + POLL_MS + POLL_SLACK_MS > deadline) {
           return text(
@@ -180,7 +217,7 @@ export function registerInfrastructureTools(server: ToolServer, ctx: ToolContext
       const serving = (await deploymentState(client, app.objectId)).serving;
       await client.changeParseServerVersion(app.objectId, target.imageTag);
       return text(
-        `✅ Switching.\n${summary.join("\n")}\n\nwait_for_deployment with after: ${serving ? serving.number : 0} shows when the new version serves traffic.`,
+        `✅ Switching.\n${summary.join("\n")}\n\nThe switch builds the app with the new version and then deploys it: several minutes, and a deployment with the old version may serve in between. wait_for_deployment with after: ${serving ? serving.number : 0} and version: "${versionParts(target.imageTag).join(".")}" waits until the app itself reports the new version. Until it does, the app's own checks (get_app_advice) may answer with errors: wait, don't report them.`,
       );
     },
   );
