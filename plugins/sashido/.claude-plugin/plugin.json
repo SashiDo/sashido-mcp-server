@@ -1,7 +1,7 @@
 {
   "name": "sashido",
   "displayName": "SashiDo",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "description": "A managed Parse Server backend your assistant can create, deploy and debug: database, users, realtime, push, files, cloud code.",
   "icon": "assets/icon.png",
   "author": {

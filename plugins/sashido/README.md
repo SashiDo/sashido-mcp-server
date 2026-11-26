@@ -7,13 +7,21 @@ With it Claude can create an app, design the classes and their permissions, gene
 ## Setup
 
 1. In the [SashiDo Dashboard](https://dashboard.sashido.io) open **Account › Access Tokens** and create a token. Choose what it may do and which apps it reaches. Read-only is the safe start.
-2. Install the plugin. It asks for the token once and keeps it in secure storage.
-
-   In Claude Code:
+2. Install the plugin. In Claude Code:
 
    ```
    /plugin install sashido --marketplace sashido/sashido-mcp-server
    ```
+
+   It asks for the token once and keeps it in secure storage.
+
+   From a terminal the same is two steps, because the command doesn't ask for the token:
+
+   ```
+   claude plugin install sashido --marketplace sashido/sashido-mcp-server
+   ```
+
+   then, in Claude Code, `/plugin configure sashido@sashido` to enter the token and `/reload-plugins`. The marketplace is cloned over SSH; without a GitHub SSH key set `CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1` first.
 
 The plugin connects to the hosted SashiDo MCP server at `https://mcp.sashido.io/mcp`. Nothing is installed on your machine and no secret is stored in a file.
 

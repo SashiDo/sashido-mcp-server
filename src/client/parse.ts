@@ -129,7 +129,7 @@ export class ParseClient {
     return response.data;
   }
 
-  async createClass(className: string, fields?: Record<string, { type: string }>): Promise<ParseSchema> {
+  async createClass(className: string, fields?: Record<string, { type: string; targetClass?: string }>): Promise<ParseSchema> {
     const response = await this.client.post<ParseSchema>(`/schemas/${enc(className)}`, {
       className,
       fields: fields ?? {},

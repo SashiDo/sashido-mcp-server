@@ -70,16 +70,33 @@ export function registerClassTools(server: ToolServer, ctx: ToolContext): void {
   // Create Class
   server.tool(
     'create_class',
-    "Create a class (a collection, like a table) with its fields. Use it to design the data model of a new app or feature. Set who may read and write it with update_class_permissions right after, then generate_types for the client code.",
+    "Create a class (a collection, like a table) with its fields, pointers to other classes included. Use it to design the data model of a new app or feature. Set who may read and write it with update_class_permissions right after, then generate_types for the client code.",
     {
       appObjectId: z.string().describe('The application object ID'),
       className: z.string().describe('The class name to create'),
       fields: z
-        .record(z.object({ type: z.string() }))
+        .record(z.object({ type: z.string(), targetClass: z.string().optional() }))
         .optional()
-        .describe('Optional initial fields definition (e.g., {"name": {"type": "String"}})'),
+        .describe(
+          'The fields, by name: {"title": {"type": "String"}, "author": {"type": "Pointer", "targetClass": "_User"}}. A Pointer or Relation needs targetClass.'
+        ),
     },
     async (args, extra) => {
+      // Parse answers a pointer without its class with a bare 500
+      const untargeted = Object.entries(args.fields ?? {})
+        .filter(([, f]) => (f.type === 'Pointer' || f.type === 'Relation') && !f.targetClass)
+        .map(([name]) => name);
+      if (untargeted.length) {
+        return {
+          isError: true,
+          content: [
+            {
+              type: 'text' as const,
+              text: `Nothing was created. A Pointer or Relation field needs targetClass, the class it points to (e.g. {"type": "Pointer", "targetClass": "_User"}): ${untargeted.join(', ')}.`,
+            },
+          ],
+        };
+      }
       const parseClient = await getParseClient(args, extra);
       const schema = await parseClient.createClass(args.className, args.fields);
 

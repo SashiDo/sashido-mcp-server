@@ -22,7 +22,7 @@ If two fit, do `diagnose` before anything that changes the app.
 ## Before any job
 
 1. Call `list_apps`. If it fails for lack of a token, tell the person to create one in the SashiDo Dashboard under Account › Access Tokens (read-only is a safe start) and stop there. Never ask them to paste a token into the chat.
-2. Find which app this project talks to: look in the project for the Parse app ID or server URL (environment files, the place the Parse SDK is initialized) and match it to `get_app`. If nothing matches and there are several apps, ask which one. Never guess between apps.
+2. Find which app this project talks to: look in the project for the Parse app ID (environment files, the place the Parse SDK is initialized) and match it to the `appId` of the apps in `list_apps`. If nothing matches and there are several apps, ask which one. Never guess between apps.
 3. You see only the tools the token allows. If a step needs a tool you don't have, say which permission the token lacks and go on with what you can do.
 
 ## Three rules for every job

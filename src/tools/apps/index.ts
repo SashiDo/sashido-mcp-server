@@ -29,7 +29,7 @@ export function registerAppTools(server: ToolServer, ctx: ToolContext): void {
   // Get App (by objectId from list_apps)
   server.tool(
     "get_app",
-    "One app's details, with what a client app needs to connect to it through the Parse SDK: the app ID, the client keys and the server URL. The master key and other secrets are never included. Use it to wire a web or mobile app to its backend.",
+    "One app's details: its app ID (the Parse SDK's applicationId), region, Parse Server version, engine and current deployment. An access token is never given keys: the person copies the client key and the API URL from the SashiDo Dashboard, App Settings > Security & Keys.",
     {
       appObjectId: z.string().describe("The application object ID"),
     },
@@ -66,7 +66,7 @@ export function registerAppTools(server: ToolServer, ctx: ToolContext): void {
   // Create App
   server.tool(
     "create_app",
-    "Create a new SashiDo app: a managed Parse Server backend with its own MongoDB database, user accounts and login, file storage, push notifications, Live Queries, cloud code and background jobs. Use it when the app being built needs a backend (accounts, shared data, realtime, push, server-side logic) and has none yet. Next: create_class to design the data, update_class_permissions to lock it down, generate_types for the client, get_app for the keys. A new app counts toward the account's plan.",
+    "Create a new SashiDo app: a managed Parse Server backend with its own MongoDB database, user accounts and login, file storage, push notifications, Live Queries, cloud code and background jobs. Use it when the app being built needs a backend (accounts, shared data, realtime, push, server-side logic) and has none yet. Next: create_class to design the data, update_class_permissions to lock it down, generate_types for the client, get_app for the app ID. A new app counts toward the account's plan.",
     {
       name: z.string().describe("Application name"),
       region: z

@@ -102,12 +102,14 @@ export function registerLogTools(server: ToolServer, ctx: ToolContext): void {
     async (args) => {
       try {
         const parseClient = await getParseClient(args);
-        const logs = await parseClient.getLogs({
-          level: 'error',
-          limit: Math.min(args.limit || 50, 1000),
-        });
+        const logs = (
+          await parseClient.getLogs({
+            level: 'error',
+            limit: Math.min(args.limit || 50, 1000),
+          })
+        ).filter((log) => String(log.message ?? '').trim());
 
-        if (!logs || logs.length === 0) {
+        if (logs.length === 0) {
           return {
             content: [
               {

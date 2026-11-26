@@ -33,10 +33,11 @@ Mention that a new app counts toward their plan.
 
 ## 3. Build it
 
-1. `create_app` with the name and the region (`eu`, `us`, `jp` or `au`). Use the name the person gave the project; ask if there is none.
-2. `create_class` for each thing the app stores, with its fields. Use a pointer to the user for "who wrote it". Don't create a class for people: accounts exist already (`_User`); add fields to it with `add_field` only if needed.
+1. `create_app` with the name and the region (`eu`, `us`, `jp` or `au`). Use the name the person gave the project; ask if there is none. If the person already has an app for this, or `create_app` is not among your tools (a token limited to some apps can't create one), build in the existing app: `list_apps`, and ask which one if it isn't obvious. Then read what is already there with `list_classes` before adding anything.
+2. `create_class` for each thing the app stores, with its fields. Use a pointer to the user for "who wrote it": `{"type": "Pointer", "targetClass": "_User"}`. Don't create a class for people: accounts exist already (`_User`); add fields to it with `add_field` only if needed.
 3. `update_class_permissions` on **every** class you created, right away. A new class is open to everyone until you do. The default for an app with accounts: every operation requires a signed-in user, and adding fields from the client is closed. Open something to everyone only when the plan said so.
-4. Check each class with `get_class_permissions`: read back what is really set, don't assume.
+4. Close the two things every new app leaves open on accounts (`_User`): anyone can list the users, and anyone can add fields to them. With `update_class_permissions` on `_User`, require a signed-in user for `find` and close `addField`; leave the rest as it is, so signing up and signing in keep working. On an app that already has users, look at how the client uses the list of users first, and ask.
+5. Check each class with `get_class_permissions`: read back what is really set, don't assume.
 
 ### "Only its owner", "only those it is shared with"
 
@@ -49,7 +50,7 @@ Class permissions say which kind of person may do an operation, not which object
 ## 4. Connect the project
 
 1. `generate_types` with the client's language: `typescript`, `swift`, `kotlin` or `dart`. Put the result where the project keeps its models; tell the person the file.
-2. `get_app` for the app ID, the client key and the server URL. Put them where the project keeps configuration (an environment file, following what the project already does), and initialize the Parse SDK once at startup. These three are meant for client apps. The master key is never given to you and must never be in a client.
+2. The client needs three values: the app ID, the client key (the JavaScript key for a web app) and the API URL. `get_app` gives you the app ID. The other two are never given to an access token: ask the person to copy them from the SashiDo Dashboard, App Settings › Security & Keys, into the project's configuration themselves (an environment file, following what the project already does). Prepare that file with the app ID filled in and the two names left empty, and initialize the Parse SDK once at startup from it. These three are meant for client apps. The master key must never be in a client.
 3. If the project has no Parse SDK yet, add the one for its platform and say that you did.
 4. Write or adjust the sign-up, sign-in and the first save and query against the typed models, if the person asked for working screens.
 
@@ -62,8 +63,8 @@ Call `get_app_advice`. Fix what it reports about the classes you made. Then, if 
 > **Your backend is running** in Europe.
 > It stores: people, notes, and who a note is shared with.
 > Only signed-in people can use it. A note is visible to its author and to those it is shared with.
-> Your project has the typed models in `src/models/` and is connected.
+> Your project has the typed models in `src/models/` and the app ID in `.env`.
 > Checked: signing up, saving a note, and that nobody reads it without signing in.
-> Left for you: nothing. You can see the data in the SashiDo Dashboard under Database.
+> Left for you: copy the client key and the API URL from the Dashboard (App Settings › Security & Keys) into `.env`; the two lines are there, empty. You can see the data in the Dashboard under Database.
 
 List anything you did not do or could not check.

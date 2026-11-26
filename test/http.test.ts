@@ -210,7 +210,44 @@ describe("stateless", () => {
     const res = await rpc("tools/call", { name: "list_engines", arguments: {} }, FULL);
     const text = (await res.json()).result.content[0].text as string;
     expect(text).toMatch(/0\.5 CPU/);
-    expect(text).toMatch(/1024 MB RAM/);
+    expect(text).toMatch(/1 GB RAM/);
+  });
+
+  it("reads an engine's memory in bytes, as the plan gives it", async () => {
+    api.answers.set("GET /products/parse-server-engines", {
+      data: [
+        { name: "Development 1X", billingPolicy: "hourly", price: 0.03, params: { cpu: 1, ram: 536870912 } },
+        { name: "Performance 1X", billingPolicy: "hourly", price: 0.543, params: { cpu: 13, ram: 4294967296 } },
+      ],
+    });
+    const res = await rpc("tools/call", { name: "list_engines", arguments: {} }, FULL);
+    const text = (await res.json()).result.content[0].text as string;
+    expect(text).toMatch(/512 MB RAM/);
+    expect(text).toMatch(/4 GB RAM/);
+    expect(text).not.toMatch(/536870912/);
+  });
+
+  it("creates a class with a pointer, and refuses one without its target before calling the app", async () => {
+    api.answers.set("POST /apps/app1/parse/schemas/Note", { className: "Note", fields: {} });
+    const ok = await rpc(
+      "tools/call",
+      { name: "create_class", arguments: { appObjectId: "app1", className: "Note", fields: { title: { type: "String" }, author: { type: "Pointer", targetClass: "_User" } } } },
+      FULL,
+    );
+    expect((await ok.json()).result.isError).toBeUndefined();
+    const sent = api.requests.filter((r) => r.method === "POST" && r.path === "/apps/app1/parse/schemas/Note");
+    expect(sent.length).toBe(1);
+    expect(JSON.stringify(sent[0]!.body)).toContain('"targetClass":"_User"');
+
+    const bad = await rpc(
+      "tools/call",
+      { name: "create_class", arguments: { appObjectId: "app1", className: "Note", fields: { author: { type: "Pointer" } } } },
+      FULL,
+    );
+    const result = (await bad.json()).result;
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text).toMatch(/needs targetClass.*author/);
+    expect(api.requests.filter((r) => r.method === "POST" && r.path === "/apps/app1/parse/schemas/Note").length).toBe(1);
   });
 
   it("has no sessions to stream or end", async () => {
@@ -634,5 +671,14 @@ describe("answers that list errors", () => {
     const result = (await res.json()).result;
     expect(result.isError).toBeUndefined();
     expect(result.content[0].text).toMatch(/Error logs \(1 entries\)/);
+  });
+
+  it("leave out entries that say nothing", async () => {
+    api.answers.set("GET /apps/app1/parse/scriptlog", [
+      { timestamp: "2026-11-13T00:00:00Z", level: "error", message: "Broke hello" },
+      { timestamp: "2026-11-13T00:00:00Z", level: "error", message: "" },
+    ]);
+    const res = await rpc("tools/call", { name: "get_error_logs", arguments: { appObjectId: "app1" } }, FULL);
+    expect((await res.json()).result.content[0].text).toMatch(/Error logs \(1 entries\)/);
   });
 });

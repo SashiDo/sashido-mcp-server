@@ -2,6 +2,16 @@ import { ToolContext, ToolServer } from '../../context.js';
 import { z } from 'zod';
 import { SashidoClient } from '../../client/sashido.js';
 
+/** The plan gives an engine's memory in bytes; older data had megabytes */
+export function memory(value: unknown): string {
+  const n = Number(value);
+  if (!isFinite(n) || n <= 0) {
+    return '? RAM';
+  }
+  const mb = n >= 1024 * 1024 ? n / (1024 * 1024) : n;
+  return mb >= 1024 ? `${+(mb / 1024).toFixed(1)} GB RAM` : `${Math.round(mb)} MB RAM`;
+}
+
 export function registerEngineTools(server: ToolServer, ctx: ToolContext): void {
   const getAuthFromRequest = (_args?: unknown, _extra?: unknown): string => ctx.token;
   // List Available Engines
@@ -22,7 +32,7 @@ export function registerEngineTools(server: ToolServer, ctx: ToolContext): void 
         billingPolicy: e.billingPolicy,
         price: `$${e.price}/${e.billingPolicy === 'monthly' ? 'month' : 'hour'}`,
         cpu: `${e.params?.cpu ?? e.cpu ?? '?'} CPU`,
-        ram: `${e.params?.ram ?? e.ram ?? '?'} MB RAM`,
+        ram: memory(e.params?.ram ?? e.ram),
         features: [
           e.supportsAutoScaling ? 'Auto-scaling' : null,
           e.supportsHighAvailability ? 'High Availability' : null,
