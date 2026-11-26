@@ -17,6 +17,19 @@ With it Claude can create an app, design the classes and their permissions, gene
 
 The plugin connects to the hosted SashiDo MCP server at `https://mcp.sashido.io/mcp`. Nothing is installed on your machine and no secret is stored in a file.
 
+## Skills
+
+The plugin also teaches Claude how to do whole jobs with those tools. You don't call them; Claude picks one from what you ask.
+
+| Skill | When |
+|---|---|
+| `new-backend` | Your app needs a backend: accounts, stored data, sharing. From a plain description to a running, locked-down backend connected to your project, with typed models |
+| `ready-to-ship` | Before launch or a deploy: what must be fixed first, what should be, what is fine |
+| `diagnose` | Something is slow, failing or restarting: the cause, from metrics, errors, deployments and the code that really runs |
+| `upgrade-parse-server` | A newer Parse Server version: code first, then the version, with a way back |
+
+They explain things by what they mean for your app, show the plan before changing anything, and end with what is true now.
+
 ## What to ask
 
 - "Create a SashiDo app for this project and design the classes for these screens."

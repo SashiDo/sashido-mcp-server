@@ -1,6 +1,7 @@
-import { readFileSync } from "fs";
+import { readFileSync, readdirSync, statSync } from "fs";
 import { describe, expect, it } from "vitest";
 import { SERVER_VERSION } from "../src/version.js";
+import { TOOL_POLICY } from "../src/access.js";
 
 // The version and the registry name are written in several files that are
 // released together: npm reads package.json, the MCP Registry reads
@@ -42,5 +43,42 @@ describe("what a release publishes", () => {
     expect(claudePlugin.mcpServers.sashido.headers.Authorization).toBe("Bearer ${user_config.sashido_access_token}");
     expect(read("mcp.json").mcpServers.sashido.headers.Authorization).toBe("Bearer ${SASHIDO_ACCESS_TOKEN}");
     expect(Object.keys(cursorPlugin.variables.properties)).toEqual(["SASHIDO_ACCESS_TOKEN"]);
+  });
+});
+
+// Claude's directory takes only Markdown, JSON, YAML and images from the
+// plugin's folder, and a skill that names a tool the server doesn't have
+// sends the assistant looking for nothing.
+describe("the plugin's skills", () => {
+  const root = new URL("../plugins/sashido/", import.meta.url);
+  const files = (readdirSync(root, { recursive: true }) as string[]).filter((f) => statSync(new URL(f, root)).isFile());
+  const skills = files.filter((f) => /^skills\/[^/]+\/SKILL\.md$/.test(f.split("\\").join("/")));
+  const text = (f: string) => readFileSync(new URL(f, root), "utf8");
+
+  it("holds only what the directory accepts", () => {
+    const refused = files.filter((f) => !/(\.(md|json|ya?ml|png|jpe?g|svg|gif|webp)|(^|\/)LICENSE)$/i.test(f));
+    expect(refused).toEqual([]);
+  });
+
+  it("names each skill after its folder and says when to use it", () => {
+    expect(skills.length).toBeGreaterThan(0);
+    for (const f of skills) {
+      const front = /^---\nname: (.+)\ndescription: (.+)\n---\n/.exec(text(f));
+      expect(front, f).not.toBeNull();
+      expect(front![1]).toBe(f.split("/")[1]);
+      expect(front![2].length, f).toBeLessThanOrEqual(1024);
+    }
+  });
+
+  it("names only tools the server has", () => {
+    const unknown: string[] = [];
+    for (const f of skills) {
+      for (const m of text(f).matchAll(/`([a-z]+(?:_[a-z]+)+)`/g)) {
+        if (!(m[1] in TOOL_POLICY)) {
+          unknown.push(`${f}: ${m[1]}`);
+        }
+      }
+    }
+    expect(unknown).toEqual([]);
   });
 });
