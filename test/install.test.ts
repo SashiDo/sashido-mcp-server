@@ -48,7 +48,12 @@ describe("install", () => {
   it("gives Claude Code the plugin, over HTTPS, and says the step that is left", () => {
     const { done } = install(["claude"], options());
     expect(done).toEqual(["claude"]);
-    expect(ran).toEqual(["claude plugin install sashido --marketplace sashido/sashido-mcp-server [CLAUDE_CODE_PLUGIN_PREFER_HTTPS]"]);
+    // a plugin that was already installed stays at its old version on "install": the update follows
+    expect(ran).toEqual([
+      "claude plugin install sashido --marketplace sashido/sashido-mcp-server [CLAUDE_CODE_PLUGIN_PREFER_HTTPS]",
+      "claude plugin marketplace update sashido [CLAUDE_CODE_PLUGIN_PREFER_HTTPS]",
+      "claude plugin update sashido@sashido [CLAUDE_CODE_PLUGIN_PREFER_HTTPS]",
+    ]);
     expect(lines.join("\n")).toMatch(/\/plugin configure sashido@sashido/);
     // the plugin carries its own skills: none are copied
     expect(existsSync(join(home, ".agents"))).toBe(false);
@@ -99,12 +104,32 @@ describe("install", () => {
     expect(ran).toContain(`codex mcp add sashido --url ${MCP_URL} --bearer-token-env-var ${TOKEN_ENV}`);
   });
 
-  it("says how to connect Codex by hand when its command isn't there", () => {
+  it("adds the server to Codex's config when its command isn't there, once, keeping what the file holds", () => {
     present = [];
-    const { failed } = install(["codex"], options());
-    expect(failed).toEqual(["codex"]);
-    expect(lines.join("\n")).toMatch(/\[mcp_servers\.sashido\]/);
-    expect(lines.join("\n")).toContain(`bearer_token_env_var = "${TOKEN_ENV}"`);
+    mkdirSync(join(home, ".codex"));
+    const file = join(home, ".codex", "config.toml");
+    writeFileSync(file, 'model = "x"');
+    const { done } = install(["codex"], options());
+    expect(done).toEqual(["codex"]);
+    const config = readFileSync(file, "utf8");
+    expect(config.startsWith('model = "x"\n')).toBe(true);
+    expect(config).toContain(`[mcp_servers.sashido]\nurl = "${MCP_URL}"\nbearer_token_env_var = "${TOKEN_ENV}"`);
+
+    install(["codex"], options());
+    expect(readFileSync(file, "utf8")).toBe(config);
+
+    uninstall(options());
+    expect(readFileSync(file, "utf8")).toBe('model = "x"\n');
+  });
+
+  it("leaves alone a sashido section someone wrote in Codex's config", () => {
+    present = [];
+    mkdirSync(join(home, ".codex"));
+    const mine = '[mcp_servers.sashido]\ncommand = "npx"\n';
+    writeFileSync(join(home, ".codex", "config.toml"), mine);
+    install(["codex"], options());
+    uninstall(options());
+    expect(readFileSync(join(home, ".codex", "config.toml"), "utf8")).toBe(mine);
   });
 
   it("never replaces a skill folder that was there before", () => {
@@ -131,7 +156,8 @@ describe("install", () => {
 
   it("changes nothing in a dry run", () => {
     install(["claude", "cursor", "codex"], { ...options(), dryRun: true });
-    expect(ran).toEqual([]);
+    // asking a program for its version is the only thing it may run
+    expect(ran).toEqual(["codex --version"]);
     expect(readTree(home)).toEqual({});
     expect(lines.join("\n")).toMatch(/dry run/);
     expect(lines.join("\n")).toContain("~/.agents/skills/sashido-backend");
@@ -153,7 +179,7 @@ describe("uninstall and status", () => {
 
     expect(readdirSync(join(home, ".agents", "skills"))).toEqual(["someone-elses"]);
     expect(JSON.parse(readFileSync(join(home, ".cursor", "mcp.json"), "utf8"))).toEqual({ mcpServers: { other: { url: "https://example.com/mcp" } } });
-    expect(ran).toEqual(["claude plugin uninstall sashido@sashido"]);
+    expect(ran.filter((r) => r.indexOf("uninstall") !== -1)).toEqual(["claude plugin uninstall sashido@sashido"]);
     expect(existsSync(join(home, ".sashido", "agents.json"))).toBe(false);
   });
 
@@ -179,7 +205,7 @@ describe("the command line", () => {
 
     present = ["claude"];
     expect(runCommand(["install", "--claude"], options())).toBe(true);
-    expect(ran.length).toBe(1);
+    expect(ran.length).toBe(3);
   });
 
   it("leaves everything else to the server itself", () => {

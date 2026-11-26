@@ -46,6 +46,8 @@ interface Manifest {
   skills: string[];
   /** Config files it added the server to */
   mcp: string[];
+  /** Codex's config, when the section was appended by this command */
+  codexConfig?: string;
   editors: Editor[];
 }
 
@@ -69,7 +71,7 @@ const manifestPath = (home: string) => join(home, '.sashido', 'agents.json');
 function readManifest(home: string): Manifest {
   try {
     const m = JSON.parse(readFileSync(manifestPath(home), 'utf8')) as Partial<Manifest>;
-    return { version: m.version ?? '', skills: m.skills ?? [], mcp: m.mcp ?? [], editors: m.editors ?? [] };
+    return { version: m.version ?? '', skills: m.skills ?? [], mcp: m.mcp ?? [], editors: m.editors ?? [], codexConfig: m.codexConfig };
   } catch {
     return { version: '', skills: [], mcp: [], editors: [] };
   }
@@ -150,12 +152,13 @@ interface Ctx {
 
 function installClaude(ctx: Ctx, update: boolean): boolean {
   ctx.log('Claude Code: the SashiDo plugin (the connection and the skills)');
-  const steps: string[][] = update
-    ? [
-        ['plugin', 'marketplace', 'update', PLUGIN],
-        ['plugin', 'update', `${PLUGIN}@${PLUGIN}`],
-      ]
-    : [['plugin', 'install', PLUGIN, '--marketplace', MARKETPLACE]];
+  // Installing a plugin that is already there (by this command or by hand)
+  // succeeds and leaves it at its old version, so the update always follows.
+  const refresh = [
+    ['plugin', 'marketplace', 'update', PLUGIN],
+    ['plugin', 'update', `${PLUGIN}@${PLUGIN}`],
+  ];
+  const steps: string[][] = update ? refresh : [['plugin', 'install', PLUGIN, '--marketplace', MARKETPLACE], ...refresh];
   for (const args of steps) {
     ctx.log(`  claude ${args.join(' ')}`);
     if (ctx.dryRun) {
@@ -172,7 +175,7 @@ function installClaude(ctx: Ctx, update: boolean): boolean {
       return false;
     }
   }
-  ctx.log('  Next, in Claude Code: /plugin configure sashido@sashido (it asks for the token and keeps it in secure storage), then /reload-plugins.');
+  ctx.log('  Next, in Claude Code: /plugin configure sashido@sashido if it has no token yet (it asks once and keeps it in secure storage), then /reload-plugins.');
   return true;
 }
 
@@ -208,19 +211,40 @@ function installCursor(ctx: Ctx, manifest: Manifest): boolean {
   return true;
 }
 
-function installCodex(ctx: Ctx): boolean {
+/** What this command appends to Codex's config when its own command isn't there */
+export const CODEX_SECTION = `
+# SashiDo MCP server (added by "npx @sashido/mcp-server install")
+[mcp_servers.sashido]
+url = "${MCP_URL}"
+bearer_token_env_var = "${TOKEN_ENV}"
+`;
+
+function installCodex(ctx: Ctx, manifest: Manifest): boolean {
   ctx.log('Codex: the connection');
   const args = ['mcp', 'add', 'sashido', '--url', MCP_URL, '--bearer-token-env-var', TOKEN_ENV];
-  ctx.log(`  codex ${args.join(' ')}`);
-  if (ctx.dryRun) {
+  // the desktop app has the config and no `codex` command
+  if (ctx.shell.run('codex', ['--version']) !== null) {
+    ctx.log(`  codex ${args.join(' ')}`);
+    if (ctx.dryRun) {
+      return true;
+    }
+    const result = ctx.shell.run('codex', args);
+    if (result && result.status === 0) {
+      return true;
+    }
+    ctx.log(`  It failed${result ? `:\n${result.output}` : ''}`);
+  }
+  const file = join(ctx.home, '.codex', 'config.toml');
+  const config = existsSync(file) ? readFileSync(file, 'utf8') : '';
+  if (/^\s*\[mcp_servers\.sashido\]/m.test(config)) {
+    ctx.log(`  kept the [mcp_servers.sashido] section already in ${file}`);
     return true;
   }
-  const result = ctx.shell.run('codex', args);
-  if (!result || result.status !== 0) {
-    ctx.log(
-      `  ${result ? `It failed:\n${result.output}\n  ` : 'The `codex` command was not found. '}Add this to ~/.codex/config.toml yourself:\n\n  [mcp_servers.sashido]\n  url = "${MCP_URL}"\n  bearer_token_env_var = "${TOKEN_ENV}"\n`,
-    );
-    return false;
+  ctx.log(`  section [mcp_servers.sashido] appended to ${file}`);
+  if (!ctx.dryRun) {
+    mkdirSync(dirname(file), { recursive: true });
+    writeFileSync(file, `${config}${config && !config.endsWith('\n') ? '\n' : ''}${CODEX_SECTION}`);
+    manifest.codexConfig = file;
   }
   return true;
 }
@@ -266,7 +290,7 @@ export function install(editors: Editor[], options: InstallOptions = {}): { done
     } else if (editor === 'cursor') {
       ok = installCursor(ctx, manifest);
     } else {
-      ok = installCodex(ctx);
+      ok = installCodex(ctx, manifest);
     }
     (ok ? done : failed).push(editor);
   }
@@ -317,8 +341,18 @@ export function uninstall(options: InstallOptions = {}): void {
       ctx.shell.run('claude', ['plugin', 'uninstall', `${PLUGIN}@${PLUGIN}`]);
     }
   }
-  if (manifest.editors.indexOf('codex') !== -1) {
-    ctx.log('Codex: remove the [mcp_servers.sashido] section from ~/.codex/config.toml yourself.');
+  if (manifest.codexConfig && existsSync(manifest.codexConfig)) {
+    const config = readFileSync(manifest.codexConfig, 'utf8');
+    if (config.indexOf(CODEX_SECTION) !== -1) {
+      ctx.log(`removed section [mcp_servers.sashido] from ${manifest.codexConfig}`);
+      if (!ctx.dryRun) {
+        writeFileSync(manifest.codexConfig, config.replace(CODEX_SECTION, ''));
+      }
+    } else {
+      ctx.log(`left ${manifest.codexConfig} alone: the section was changed since it was added`);
+    }
+  } else if (manifest.editors.indexOf('codex') !== -1) {
+    ctx.log('Codex: if you no longer want it, run: codex mcp remove sashido (or delete [mcp_servers.sashido] from ~/.codex/config.toml).');
   }
   if (!ctx.dryRun) {
     rmSync(manifestPath(ctx.home), { force: true });
