@@ -238,6 +238,7 @@ More in [Build with AI on SashiDo](https://www.sashido.io/en/docs/developers/bui
 - **Over HTTP, credentials come only from the request.** Each request brings its own token in the `Authorization` header. The server stores no tokens, and the token is never placed in a URL.
 - **Audit log.** Every call is recorded in the account's Activity: the token, the client (e.g. Claude Code), the tool, the result and a request ID.
 - **Hosted limits.** Browser origins must be allowed (`ALLOWED_ORIGINS`), requests are rate-limited per IP, and the tools that read local files or URLs are off.
+- **A check before a deploy.** When the assistant starts a deployment or a build, the server first looks whether a class is open for everyone to write and delete. If one is, nothing is started: the assistant is told to explain it to you and to go on only if you say so.
 - **Keys stay on the server side.** Calls to your app go through SashiDo's API with your token. The app's master key is never sent to the client or the model.
 
 ## Self-hosting

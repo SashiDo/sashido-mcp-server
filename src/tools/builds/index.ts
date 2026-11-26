@@ -1,6 +1,7 @@
 import { ToolContext, ToolServer } from "../../context.js";
 import { z } from "zod";
 import { SashidoClient } from "../../client/sashido.js";
+import { deployGuard } from "../../advice/guard.js";
 
 export function registerBuildTools(server: ToolServer, ctx: ToolContext): void {
   const getAuthFromRequest = (_args?: unknown, _extra?: unknown): string => ctx.token;
@@ -65,22 +66,30 @@ export function registerBuildTools(server: ToolServer, ctx: ToolContext): void {
   // Trigger Build
   server.tool(
     "trigger_build",
-    "Start a new build of an app's cloud code from its repository without a push, e.g. to retry a build that failed for a passing reason. Check it with list_builds and get_build_log.",
+    "Start a new build of an app's cloud code from its repository without a push, e.g. to retry a build that failed for a passing reason. A finished build is deployed, so it first checks that no class is open for everyone to write and delete, and starts nothing if one is. Check it with list_builds and get_build_log.",
     {
       appObjectId: z.string().describe("The application object ID"),
       region: z.string().optional().describe("Target region (optional)"),
+      deployAnyway: z
+        .boolean()
+        .optional()
+        .describe("Go on although the check before it found something critical. Only after the person, shown the finding, said to."),
     },
     async (args, extra) => {
       const auth = getAuthFromRequest(args, extra);
       const client = new SashidoClient(auth);
 
+      const guard = await deployGuard(ctx, args.appObjectId, "the build", args.deployAnyway);
+      if (guard.stop) {
+        return { content: [{ type: "text" as const, text: guard.stop }] };
+      }
       await client.triggerBuild(args.appObjectId, args.region);
 
       return {
         content: [
           {
             type: "text" as const,
-            text: `Build triggered successfully for app ${args.appObjectId}`,
+            text: `Build triggered successfully for app ${args.appObjectId}${guard.note ? `\n\n${guard.note}` : ""}`,
           },
         ],
       };

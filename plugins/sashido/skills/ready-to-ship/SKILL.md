@@ -61,4 +61,6 @@ After fixing, run step 1 again and report the new state.
 
 If the person asked you to deploy and nothing is in "must fix", go on and deploy without an extra question; mention the "should fix" items in one line at the end.
 
-If something is in "must fix", stop and say it. Deploy only after the person fixes it or tells you to deploy anyway. After a deploy, `wait_for_deployment`, then `check_app_health`.
+If something is in "must fix", stop and say it. Deploy only after the person fixes it or tells you to deploy anyway.
+
+`deploy_app` and `trigger_build` make the first of these checks themselves: when a class is open for everyone to write and delete, they start nothing and say so. Pass `deployAnyway: true` only after the person, having heard what it means for their app, said to go on. After a deploy, `wait_for_deployment`, then `check_app_health`.

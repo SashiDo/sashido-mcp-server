@@ -1,6 +1,6 @@
 {
   "name": "@sashido/mcp-server",
-  "version": "0.5.3",
+  "version": "0.6.0",
   "mcpName": "io.sashido/mcp-server",
   "description": "MCP server for SashiDo: a managed Parse Server backend (database, auth, realtime, push, files, cloud code) that your AI assistant can create, deploy and debug",
   "main": "dist/index.js",

@@ -1,6 +1,7 @@
 import { ToolContext, ToolServer } from '../../context.js';
 import { z } from 'zod';
 import { SashidoClient } from '../../client/sashido.js';
+import { deployGuard } from '../../advice/guard.js';
 import { IN_PROGRESS, deploymentState, describeDeploymentState, newRecord } from '../infrastructure/deployments.js';
 
 export function registerDeploymentTools(server: ToolServer, ctx: ToolContext): void {
@@ -24,15 +25,23 @@ export function registerDeploymentTools(server: ToolServer, ctx: ToolContext): v
   // Deploy App
   server.tool(
     'deploy_app',
-    "Roll the app out again with its current build and settings. Use it when a change needs a new deployment, or to restart an app that misbehaves. Follow with wait_for_deployment.",
+    "Roll the app out again with its current build and settings. Use it when a change needs a new deployment, or to restart an app that misbehaves. It first checks that no class is open for everyone to write and delete, and starts nothing if one is. Follow with wait_for_deployment.",
     {
       appObjectId: z.string().describe('The application object ID'),
       region: z.string().optional().describe('Target region (optional)'),
+      deployAnyway: z
+        .boolean()
+        .optional()
+        .describe('Go on although the check before it found something critical. Only after the person, shown the finding, said to.'),
     },
     async (args, extra) => {
       const auth = getAuthFromRequest(args, extra);
       const client = new SashidoClient(auth);
 
+      const guard = await deployGuard(ctx, args.appObjectId, 'the deployment', args.deployAnyway);
+      if (guard.stop) {
+        return { content: [{ type: 'text' as const, text: guard.stop }] };
+      }
       const before = await deploymentState(client, args.appObjectId);
       await client.deployApp(args.appObjectId, args.region);
       const record = await newRecord(client, args.appObjectId, before);
@@ -42,6 +51,7 @@ export function registerDeploymentTools(server: ToolServer, ctx: ToolContext): v
           ? `In the deployment history it is ${record.name}: cancel_deployment with deploymentName="${record.name}" stops it while it rolls out.`
           : "It isn't in the deployment history (yet), so it can't be cancelled by name now; get_deployment_info shows it once it is.",
         `wait_for_deployment with after: ${before.serving ? before.serving.number : 0} waits until it serves traffic.`,
+        ...(guard.note ? [guard.note] : []),
       ];
 
       return { content: [{ type: 'text' as const, text: lines.join('\n\n') }] };

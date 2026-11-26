@@ -1,5 +1,36 @@
 import { ToolContext, ToolServer } from '../../context.js';
 import { z } from 'zod';
+import type { ParseSchema } from '../../client/parse.js';
+
+// every class has these; listing them for each one only costs the reader
+const EVERYWHERE = ['objectId', 'createdAt', 'updatedAt', 'ACL'];
+
+/**
+ * The data model as one line per class, the app's own classes first:
+ *   Note: title String, author Pointer<_User>
+ * A JSON listing of the same was ten times as long, most of it the fields
+ * every class has and the built-in classes.
+ */
+export function formatClasses(schemas: ParseSchema[]): string {
+  const line = (s: ParseSchema) => {
+    const fields = Object.entries(s.fields)
+      .filter(([name]) => EVERYWHERE.indexOf(name) === -1)
+      .map(([name, def]) => `${name} ${def.type}${def.targetClass ? `<${def.targetClass}>` : ''}`);
+    return `${s.className}: ${fields.length ? fields.join(', ') : '(no fields of its own)'}`;
+  };
+  const own = schemas.filter((s) => s.className.indexOf('_') !== 0).sort((a, b) => a.className.localeCompare(b.className));
+  const builtIn = schemas.filter((s) => s.className.indexOf('_') === 0).sort((a, b) => a.className.localeCompare(b.className));
+  return [
+    `${own.length} class${own.length === 1 ? '' : 'es'} of the app's own, ${builtIn.length} built in. Every class also has ${EVERYWHERE.join(', ')}.`,
+    '',
+    ...(own.length ? own.map(line) : ["(the app has no classes of its own yet)"]),
+    '',
+    'Built in:',
+    ...builtIn.map(line),
+    '',
+    'get_class shows one class in full, with who may read and write it.',
+  ].join('\n');
+}
 
 export function registerClassTools(server: ToolServer, ctx: ToolContext): void {
   const getParseClient = async (args: { appObjectId: string }, _extra?: unknown) =>
@@ -7,7 +38,7 @@ export function registerClassTools(server: ToolServer, ctx: ToolContext): void {
   // List Classes
   server.tool(
     'list_classes',
-    "An app's data model: every class with its fields and their types. Read it before writing queries, cloud code or client code against the app.",
+    "An app's data model: every class with its fields and their types, one line per class, the app's own classes first. Read it before writing queries, cloud code or client code against the app. get_class shows one class in full, with its permissions.",
     {
       appObjectId: z.string().describe('The application object ID'),
     },
@@ -15,24 +46,7 @@ export function registerClassTools(server: ToolServer, ctx: ToolContext): void {
       const parseClient = await getParseClient(args, extra);
       const schemas = await parseClient.listClasses();
 
-      // Return only class names and field info, not sensitive data
-      const sanitizedSchemas = schemas.map(schema => ({
-        className: schema.className,
-        fields: Object.entries(schema.fields).map(([name, def]) => ({
-          name,
-          type: def.type,
-          targetClass: def.targetClass,
-        })),
-      }));
-
-      return {
-        content: [
-          {
-            type: 'text' as const,
-            text: JSON.stringify(sanitizedSchemas, null, 2),
-          },
-        ],
-      };
+      return { content: [{ type: 'text' as const, text: formatClasses(schemas) }] };
     }
   );
 

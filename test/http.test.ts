@@ -227,6 +227,64 @@ describe("stateless", () => {
     expect(text).not.toMatch(/536870912/);
   });
 
+  it("lists the data model one line per class, the app's own first, without the fields every class has", async () => {
+    api.answers.set("GET /apps/app1/parse/schemas", {
+      results: [
+        { className: "_User", fields: { objectId: { type: "String" }, ACL: { type: "ACL" }, username: { type: "String" } } },
+        { className: "Note", fields: { objectId: { type: "String" }, createdAt: { type: "Date" }, title: { type: "String" }, author: { type: "Pointer", targetClass: "_User" } } },
+      ],
+    });
+    const res = await rpc("tools/call", { name: "list_classes", arguments: { appObjectId: "app1" } }, FULL);
+    const text = (await res.json()).result.content[0].text as string;
+    expect(text).toContain("Note: title String, author Pointer<_User>");
+    expect(text).toContain("_User: username String");
+    expect(text.indexOf("Note:")).toBeLessThan(text.indexOf("_User:"));
+    expect(text).not.toMatch(/Note:.*objectId/);
+  });
+
+  describe("the check before a deploy or a build", () => {
+    const OPEN = { results: [{ className: "Order", fields: {}, classLevelPermissions: { create: { "*": true }, update: { "*": true }, delete: { "*": true } } }] };
+    const CLOSED = { results: [{ className: "Order", fields: {}, classLevelPermissions: { create: { requiresAuthentication: true }, update: { "*": true }, delete: { "*": true } } }] };
+    const started = (path: string) => api.requests.filter((r) => r.method === "POST" && r.path === path).length;
+    const tool = async (name: string, args: Record<string, unknown>, auth = FULL) => {
+      const res = await rpc("tools/call", { name, arguments: { appObjectId: "app1", ...args } }, auth);
+      return (await res.json()).result.content[0].text as string;
+    };
+
+    it("starts nothing when a class is open for everyone to write and delete, and says what to do", async () => {
+      api.answers.set("GET /apps/app1/parse/schemas", OPEN);
+      const deploys = started("/apps/app1/deploy");
+      const builds = started("/apps/app1/build");
+      for (const name of ["deploy_app", "trigger_build"]) {
+        const text = await tool(name, {});
+        expect(text).toMatch(/^Nothing was done/);
+        expect(text).toMatch(/Classes writable by everyone.*Order/s);
+        expect(text).toMatch(/deployAnyway: true/);
+      }
+      expect(started("/apps/app1/deploy")).toBe(deploys);
+      expect(started("/apps/app1/build")).toBe(builds);
+    });
+
+    it("goes on when the person said to, and says what it went over", async () => {
+      api.answers.set("GET /apps/app1/parse/schemas", OPEN);
+      const builds = started("/apps/app1/build");
+      const text = await tool("trigger_build", { deployAnyway: true });
+      expect(text).toMatch(/Build triggered/);
+      expect(text).toMatch(/Went on although this was found/);
+      expect(started("/apps/app1/build")).toBe(builds + 1);
+    });
+
+    it("says nothing when nothing is critical, and starts it", async () => {
+      api.answers.set("GET /apps/app1/parse/schemas", CLOSED);
+      const builds = started("/apps/app1/build");
+      const deploys = started("/apps/app1/deploy");
+      expect(await tool("trigger_build", {})).toBe("Build triggered successfully for app app1");
+      expect(await tool("deploy_app", {})).toMatch(/^Deployment started/);
+      expect(started("/apps/app1/build")).toBe(builds + 1);
+      expect(started("/apps/app1/deploy")).toBe(deploys + 1);
+    });
+  });
+
   it("creates a class with a pointer, and refuses one without its target before calling the app", async () => {
     api.answers.set("POST /apps/app1/parse/schemas/Note", { className: "Note", fields: {} });
     const ok = await rpc(
