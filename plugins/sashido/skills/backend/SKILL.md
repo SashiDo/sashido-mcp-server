@@ -35,10 +35,6 @@ If two fit, do `diagnose` before anything that changes the app.
 | "Nobody can add data without signing in." | "CLP create is requiresAuthentication." |
 | "the things your app stores: people, notes" | "classes", "schema" |
 | "code that runs on the server" | "cloud code", "triggers" |
-| "the key that can do anything, which must stay secret" | "the master key" |
-| "notifications sent from the app itself" | "client push" |
-
-The same goes for version numbers and product names: "your backend runs an old version of its server software, with known security fixes missing" tells a founder more than "Parse Server 3.1.3 on Node.js 12". Give the number after the meaning, or when asked.
 
 Use the technical terms only when the person uses them first, or asks how it works underneath.
 
