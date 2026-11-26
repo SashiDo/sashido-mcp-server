@@ -14,8 +14,8 @@ This works with a read-only token. Fixing needs a token that may change the app.
 Run these; none of them changes anything.
 
 1. `get_app_advice`: who may read and write the data, sign-in and session settings, server code that stopped working on this version, health, errors in the last day, failed jobs.
-2. `get_error_logs`, if the advice reported errors: what they are and how often.
-3. `get_process_metrics`: whether the app is close to its memory or CPU limit, or keeps restarting.
+2. `get_error_logs`, if the advice reported errors: what they are and how often. If an error came from your own work in this session (a call of yours that failed), say that, not "someone".
+3. `get_process_metrics`: whether the app is close to its memory or CPU limit, or keeps restarting. A short CPU peak right at a deployment is the app starting up: not a finding.
 4. In the project, look for secrets that would ship to users: a master key, a private key of another service, a database address, in the client code or in files that are bundled or committed. The app ID, the client key and the API URL are fine in a client. The master key never is.
 5. If you are about to push server code: read what changed since the last deployment and check it against the version the app runs (`get_app_infrastructure`).
 

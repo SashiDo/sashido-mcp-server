@@ -681,6 +681,22 @@ describe("advisor", () => {
     });
   });
 
+  it("counts the errors of the last day as get_error_logs shows them: without the empty entries", async () => {
+    const now = new Date().toISOString();
+    api.answers.set(`GET ${P}/scriptlog`, [
+      { timestamp: now, level: "error", message: "Broke hello" },
+      { timestamp: now, level: "error", message: "" },
+    ]);
+    try {
+      const advice = await call("get_app_advice", { appObjectId: "app1" });
+      expect(advice.content[0]!.text).toMatch(/⚠️ 1 error in the last 24 hours/);
+      const logs = await call("get_error_logs", { appObjectId: "app1" });
+      expect(logs.content[0]!.text).toMatch(/Error logs \(1 entries\)/);
+    } finally {
+      api.answers.set(`GET ${P}/scriptlog`, []);
+    }
+  });
+
   it("gives the app server's own checks, problems first, and what breaks in its code", async () => {
     api.answers.set(`GET ${P}/app_checks`, {
       state: "fail",

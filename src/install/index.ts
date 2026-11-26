@@ -382,8 +382,10 @@ const USAGE = `Usage: npx @sashido/mcp-server@latest <command> [options]
   doctor      Check the whole setup: the server, the token, each editor, the skills.
   status      Show what this command installed.
 
-Options for install:
+Options for install and doctor:
   --claude --cursor --codex   Only these editors (default: the ones found on this machine)
+
+Options for install:
   --dry-run                   Say what would be done, change nothing
 
 Without a command it starts the MCP server itself (what an editor runs).`;
@@ -407,7 +409,8 @@ export async function runCommand(argv: string[], options: InstallOptions = {}): 
   }
   if (command === 'doctor') {
     const { doctor } = await import('./doctor.js');
-    const healthy = await doctor({ home: ctx.home, shell: ctx.shell, env: process.env, fetch, log: ctx.log });
+    const only = EDITORS.filter((e) => argv.indexOf(`--${e}`) !== -1);
+    const healthy = await doctor({ home: ctx.home, shell: ctx.shell, env: process.env, fetch, log: ctx.log, only });
     if (!healthy) {
       process.exitCode = 1;
     }

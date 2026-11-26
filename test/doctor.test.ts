@@ -80,6 +80,15 @@ describe("doctor", () => {
     expect(out()).toMatch(/nothing here needs it/);
   });
 
+  it("checks only the editors named, whatever else is on the machine", async () => {
+    mkdirSync(join(home, ".cursor"));
+    mkdirSync(join(home, ".codex"));
+    expect(await doctor({ home, shell, env: {}, fetch: fakeFetch, log: (l) => lines.push(l), only: ["claude"] })).toBe(true);
+    expect(out()).toMatch(/Claude Code: the SashiDo plugin is installed/);
+    expect(out()).not.toMatch(/Cursor|Codex: /);
+    expect(out()).toMatch(/Everything is in place/);
+  });
+
   it("tells a refused token from a missing one", async () => {
     mkdirSync(join(home, ".cursor"));
     tools = () => json({ error: { message: "Invalid token" } }, 401);

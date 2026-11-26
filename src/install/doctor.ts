@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { SERVER_VERSION } from '../version.js';
 import { compareVersions } from '../upgrade/versions.js';
-import { MCP_URL, TOKEN_ENV, Shell, detectEditors } from './index.js';
+import { Editor, MCP_URL, TOKEN_ENV, Shell, detectEditors } from './index.js';
 
 /**
  * `npx @sashido/mcp-server doctor`: checks the whole setup from end to end
@@ -28,6 +28,8 @@ export interface DoctorOptions {
   env: Record<string, string | undefined>;
   fetch: typeof fetch;
   log: (line: string) => void;
+  /** Only these editors; default: the ones found on the machine */
+  only?: Editor[];
 }
 
 const INSTALL = 'npx @sashido/mcp-server@latest install';
@@ -150,7 +152,7 @@ function skillChecks(o: DoctorOptions): Check[] {
 
 /** Runs every check and prints them; `true` when nothing failed */
 export async function doctor(o: DoctorOptions): Promise<boolean> {
-  const editors = detectEditors(o.home, o.shell);
+  const editors = o.only && o.only.length ? o.only : detectEditors(o.home, o.shell);
   const others = editors.indexOf('cursor') !== -1 || editors.indexOf('codex') !== -1;
   const checks: Check[] = [...(await serverChecks(o))];
   if (!editors.length) {

@@ -116,7 +116,9 @@ export function registerAdvisorTools(server: ToolServer, ctx: ToolContext): void
         out.push(health.status === "ok" ? "✓ The app server answers its health check." : `❗ Health check: ${health.status}.`);
         if (ctx.access.scopes.indexOf("logs:read") !== -1) {
           const errors = await parse.getLogs({ level: "error", limit: 100 });
-          const recent = errors.filter((e) => Date.now() - Date.parse(e.timestamp) < DAY_MS);
+          // entries without a message say nothing, and get_error_logs leaves them out:
+          // the two must count the same
+          const recent = errors.filter((e) => String(e.message ?? "").trim() && Date.now() - Date.parse(e.timestamp) < DAY_MS);
           out.push(
             recent.length
               ? `⚠️ ${recent.length} error${recent.length === 1 ? "" : "s"} in the last 24 hours: get_error_logs shows them.`
