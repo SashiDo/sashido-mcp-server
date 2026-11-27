@@ -475,7 +475,7 @@ describe("infrastructure", () => {
     try {
       let text = (await call("wait_for_deployment", { appObjectId: "app1", after: 250, version: "6.5.11", timeoutSeconds: 5 })).content[0]!.text;
       expect(text).toMatch(/a build is still running/);
-      expect(text).toMatch(/Not done yet: call wait_for_deployment again with after: 250 and version: "6\.5\.11"/);
+      expect(text).toMatch(/Not done yet: call wait_for_deployment again with after: 250\./);
       expect(text).not.toMatch(/serves traffic now/);
 
       // the build ended, the old image still answers
@@ -483,16 +483,25 @@ describe("infrastructure", () => {
       text = (await call("wait_for_deployment", { appObjectId: "app1", after: 250, version: "6.5.11", timeoutSeconds: 5 })).content[0]!.text;
       expect(text).toMatch(/still reports Parse Server 3\.1\.3, not 6\.5\.11/);
 
+      // the same without being told the version: an assistant whose copy of
+      // the tool has no such parameter. The app is set to 6.5.11 already.
+      api.answers.set("GET /users/info", { data: { user: {}, products: { apps: [{ ...SHOP, parseServerVersion: "release-6.5.11-ubi8-node18" }] } } });
+      text = (await call("wait_for_deployment", { appObjectId: "app1", after: 250, timeoutSeconds: 5 })).content[0]!.text;
+      expect(text).toMatch(/still reports Parse Server 3\.1\.3, not 6\.5\.11: a version switch is under way/);
+
       // the deployment with the new image serves
       api.answers.set("GET /processes/app1/latest-deployment", () => serving(252));
       api.answers.set(`GET ${P}/health`, { status: "ok", version: "6.5.11" });
       text = (await call("wait_for_deployment", { appObjectId: "app1", after: 250, version: "6.5.11", timeoutSeconds: 5 })).content[0]!.text;
       expect(text).toMatch(/parse-server-deployment-252 serves traffic now, 1 container reporting, and the app reports Parse Server 6\.5\.11/);
     } finally {
+      // what the tests around this one expect
       api.answers.set("GET /apps/app1/builds", { data: [] });
+      api.answers.set(`GET ${P}/health`, { status: "ok" });
+      api.answers.set("GET /users/info", { data: { user: {}, products: { apps: [SHOP, { objectId: "app2", name: "Blog" }] } } });
     }
-    // two of the three calls wait out their (shortest allowed) five seconds
-  }, 30000);
+    // three of the four calls wait out their (shortest allowed) five seconds
+  }, 40000);
 
   it("waits until a newer deployment serves traffic", async () => {
     let calls = 0;

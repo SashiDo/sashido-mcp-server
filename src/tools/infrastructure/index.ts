@@ -83,7 +83,7 @@ export function registerInfrastructureTools(server: ToolServer, ctx: ToolContext
 
   server.tool(
     "wait_for_deployment",
-    "Wait until a newer deployment of the app serves traffic and no build is still running, e.g. after deploy_app, set_env_var, set_engine or change_parse_server_version (then pass version, to wait until the app reports it), and say how it went. Returns before clients give up on the call (timeoutSeconds): call it again if it's still rolling out.",
+    "Wait until a newer deployment of the app serves traffic and no build is still running, e.g. after deploy_app, set_env_var, set_engine or change_parse_server_version, and say how it went. After a version switch it is done only when the app itself reports the version it was switched to. Returns before clients give up on the call (timeoutSeconds): call it again if it's still rolling out.",
     {
       appObjectId: z.string().describe("The application object ID"),
       timeoutSeconds: z
@@ -104,7 +104,7 @@ export function registerInfrastructureTools(server: ToolServer, ctx: ToolContext
         .string()
         .optional()
         .describe(
-          'After change_parse_server_version: the version expected, e.g. "6.5.11". Waits until the app itself reports it, not only until a newer deployment serves',
+          'The Parse Server version the app must report, e.g. "6.5.11". Default: the version the app is set to, so it is rarely needed',
         ),
     },
     async (args) => {
@@ -130,16 +130,26 @@ export function registerInfrastructureTools(server: ToolServer, ctx: ToolContext
           const building = (await client.listBuilds(args.appObjectId, 3).catch(() => [])).find((b) =>
             IN_PROGRESS.includes(String((b as { phase?: string }).phase)),
           );
-          const reported = args.version
+          // What the app should run: what the caller says, else what the app
+          // is set to. A switch sets that at once, long before the app runs
+          // it, and its build is not in the list of builds, so this is the
+          // only sign that it is still under way.
+          const set = args.version
+            ? args.version
+            : versionParts((await findApp(ctx, args.appObjectId).catch(() => null))?.parseServerVersion).join(".");
+          const expected = set === "0.0.0" ? "" : set;
+          const reported = expected
             ? String(((await ctx.parse(args.appObjectId).checkHealth().catch(() => ({}))) as { version?: unknown }).version || "")
             : "";
           if (building) {
             pending = `${state.serving.name} serves traffic, but a build is still running: the deployment that follows it is the one to wait for.`;
-          } else if (args.version && !sameVersion(reported, args.version)) {
-            pending = `${state.serving.name} serves traffic, but the app ${reported ? `still reports Parse Server ${reported}` : "doesn't answer its health check yet"}, not ${args.version}: the new version isn't deployed yet.`;
+          } else if (reported && !sameVersion(reported, expected)) {
+            pending = `${state.serving.name} serves traffic, but the app still reports Parse Server ${reported}, not ${expected}: a version switch is under way and the new version isn't deployed yet.`;
+          } else if (args.version && !reported) {
+            pending = `${state.serving.name} serves traffic, but the app doesn't answer its health check yet.`;
           } else {
             return text(
-              `${state.serving.name} serves traffic now, ${state.serving.containers} container${state.serving.containers === 1 ? "" : "s"} reporting${args.version ? `, and the app reports Parse Server ${reported}` : ""}.`,
+              `${state.serving.name} serves traffic now, ${state.serving.containers} container${state.serving.containers === 1 ? "" : "s"} reporting${reported ? `, and the app reports Parse Server ${reported}` : ""}.`,
             );
           }
         }
@@ -160,7 +170,7 @@ export function registerInfrastructureTools(server: ToolServer, ctx: ToolContext
         }
         if (pending && Date.now() + POLL_MS + POLL_SLACK_MS > deadline) {
           return text(
-            `${pending} Not done yet: call wait_for_deployment again with after: ${before}${args.version ? ` and version: "${args.version}"` : ""}. A version switch builds the app first and takes several minutes.`,
+            `${pending} Not done yet: call wait_for_deployment again with after: ${before}. A version switch builds the app first and takes several minutes.`,
           );
         }
         if (Date.now() + POLL_MS + POLL_SLACK_MS > deadline) {
@@ -217,7 +227,7 @@ export function registerInfrastructureTools(server: ToolServer, ctx: ToolContext
       const serving = (await deploymentState(client, app.objectId)).serving;
       await client.changeParseServerVersion(app.objectId, target.imageTag);
       return text(
-        `✅ Switching.\n${summary.join("\n")}\n\nThe switch builds the app with the new version and then deploys it: several minutes, and a deployment with the old version may serve in between. wait_for_deployment with after: ${serving ? serving.number : 0} and version: "${versionParts(target.imageTag).join(".")}" waits until the app itself reports the new version. Until it does, the app's own checks (get_app_advice) may answer with errors: wait, don't report them.`,
+        `✅ Switching.\n${summary.join("\n")}\n\nThe switch builds the app with the new version and then deploys it: several minutes, and a deployment with the old version may serve in between. wait_for_deployment with after: ${serving ? serving.number : 0} waits until the app itself reports Parse Server ${versionParts(target.imageTag).join(".")}; call it again each time it says "not done yet". Until it does, the app's own checks (get_app_advice) may answer with errors: wait, don't report them.`,
       );
     },
   );

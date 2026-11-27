@@ -43,7 +43,7 @@ For an app with real users, offer to try the new version first on a second app w
 
 1. `change_parse_server_version` without `confirm`: it shows what would change. Show that to the person.
 2. After their "yes", call it with `confirm: true`. Ask even when the plan found nothing to change and even though they asked for the upgrade: the request is not the "yes" to this preview, and a major version also changes things for their client apps.
-3. The switch builds the app with the new version and then deploys it. It takes several minutes, and in between a deployment with the old version may serve. `wait_for_deployment` with `after` and `version`, as the tool says, and call it again each time it answers "not done yet". Don't check anything else until it says the app reports the new version.
+3. The switch builds the app with the new version and then deploys it. It takes several minutes, and in between a deployment with the old version may serve. `wait_for_deployment` with `after`, as the tool says, and call it again each time it answers "not done yet": it is done only when the app itself reports the new version. Don't check anything else until it says the app reports the new version.
 
 ## 6. Verify
 
